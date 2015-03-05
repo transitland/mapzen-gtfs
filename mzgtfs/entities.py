@@ -1,4 +1,5 @@
 """GTFS entities."""
+import json
 import re
 
 import mzgeohash
@@ -97,7 +98,10 @@ class Entity(object):
     raise NotImplementedError    
     
   def geojson(self):
-    raise NotImplementedError    
+    raise NotImplementedError
+    
+  def from_geojson(self, d):
+    raise NotImplementedError
 
 class Agency(Entity):
   onestop_type = 'o'
@@ -141,6 +145,12 @@ class Agency(Entity):
       'bbox': self.bbox()
     }
 
+  @classmethod
+  def from_geojson(cls, d):
+    agency = cls(d['properties'])
+    agency.cache['stops'] = [Stop.from_geojson(i) for i in d['features']]
+    return agency
+    
   def routes(self):
     if 'routes' in self.cache:
       return self.cache['routes']
@@ -149,21 +159,21 @@ class Agency(Entity):
     if len(self.feed.agencies()) > 1:
       check = lambda r:(r.get('agency_id') == self.get('agency_id'))
     # Get the routes...    
-    self.cache['routes'] = filter(check, self.feed.read('routes.txt'))
+    self.cache['routes'] = filter(check, self.feed.read('routes'))
     return self.cache['routes']
     
   def trips(self):
     if 'trips' in self.cache:
       return self.cache['trips']
     route_ids = set(route.get('route_id') for route in self.routes())
-    self.cache['trips'] = [trip for trip in self.feed.read('trips.txt') if trip.get('route_id') in route_ids]
+    self.cache['trips'] = [trip for trip in self.feed.read('trips') if trip.get('route_id') in route_ids]
     return self.cache['trips']
     
   def stop_times(self):
     if 'stop_times' in self.cache:
       return self.cache['stop_times']
     trip_ids = set(trip.get('trip_id') for trip in self.trips())
-    self.cache['stop_times'] = [s for s in self.feed.readcsv('stop_times.txt') if s.get('trip_id') in trip_ids]
+    self.cache['stop_times'] = [s for s in self.feed.readcsv('stop_times') if s.get('trip_id') in trip_ids]
     return self.cache['stop_times']  
     
   def stops(self):
@@ -176,7 +186,7 @@ class Agency(Entity):
       stop_ids = set(s.get('stop_id') for s in self.stop_times())
       check = lambda s:(s.get('stop_id') in stop_ids)
     # Get the stops...
-    self.cache['stops'] = filter(check, self.feed.read('stops.txt'))
+    self.cache['stops'] = filter(check, self.feed.read('stops'))
     return self.cache['stops']
     
   def _stops_centroid(self):
@@ -236,6 +246,10 @@ class Stop(Entity):
       'properties': dict((k,v) for k,v in self.items() if k != 'geometry'),
       'bbox': self.bbox()
     }
+    
+  @classmethod
+  def from_geojson(cls, d):
+    return cls(d['properties'])
 
 class Station(Entity):
   pass

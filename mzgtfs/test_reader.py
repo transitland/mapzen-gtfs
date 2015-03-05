@@ -1,4 +1,4 @@
-"""GTFS unit tests."""
+"""Reader unit tests."""
 import unittest
 import os
 import json
@@ -6,10 +6,9 @@ import json
 import reader
 
 class TestReader(unittest.TestCase):
-  test_gtfs = os.path.join('examples', 'sample-feed.zip')
-  
-  def test_readcsv(self):
-    expect = {
+  test_gtfs_feed = os.path.join('examples', 'sample-feed.zip')
+  test_geojson_feed = os.path.join('examples', 'sample-feed.geojson')
+  stop_expect = {
       'stop_lat': '36.425288', 
       'zone_id': '', 
       'stop_lon': '-117.133162', 
@@ -18,11 +17,20 @@ class TestReader(unittest.TestCase):
       'stop_desc': '', 
       'stop_name': 'Furnace Creek Resort (Demo)'
     }
-    f = reader.Reader(self.test_gtfs)
-    stops = f.readcsv('stops.txt')
-    found = filter(lambda x:x['stop_id'] == expect['stop_id'], stops)[0]
-    for k in expect:
-      assert expect[k] == found[k]
-    
+  
+  def test_open_geojson(self):
+    f = reader.Reader(self.test_geojson_feed)
+    stops = f.read('stops')
+    found = filter(lambda x:x['stop_id'] == self.stop_expect['stop_id'], stops)[0]
+    for k in self.stop_expect:
+      assert self.stop_expect[k] == found[k]
+  
+  def test_open_zip(self):
+    f = reader.Reader(self.test_gtfs_feed)
+    stops = f.read('stops')
+    found = filter(lambda x:x['stop_id'] == self.stop_expect['stop_id'], stops)[0]
+    for k in self.stop_expect:
+      assert self.stop_expect[k] == found[k]
+      
 if __name__ == '__main__':
     unittest.main()
