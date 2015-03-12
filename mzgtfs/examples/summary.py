@@ -3,7 +3,7 @@ import os
 import json
 import glob
 
-import onestop.gtfs
+import mzgtfs.reader
 
 def aggregate(filenames, outfile):
   features = []
@@ -12,7 +12,7 @@ def aggregate(filenames, outfile):
       print g
       with open(g) as f:
         data = json.load(f)
-      b = data['bbox']
+      b = data.bbox()
       features.append({
         'type':'Feature',
         'properties': data['properties'],
@@ -35,12 +35,8 @@ def aggregate(filenames, outfile):
 
 def summarize(filename):
   d = os.path.dirname(filename)
-  if os.path.exists(os.path.join(d, 'status.txt')):
-    print "Exists, skipping."
-    return
-
   # Create OnestopIds for each agency.
-  g = mzgtfs.Reader(filename)
+  g = mzgtfs.reader.Reader(filename)
   for agency in g.agencies():
     print "Agency:", agency.get('agency_name')
     try:
@@ -58,15 +54,11 @@ def summarize(filename):
     data = agency.geojson()
     with open(os.path.join(d, '%s.geojson'%o), 'w') as f:
       f.write(json.dumps(data))
-
-  # Write status file.
-  with open(os.path.join(d, 'status.txt'), 'w') as f:
-    f.write('done')
       
 if __name__ == "__main__":
   for filename in sys.argv[1:]:
     print "==== %s ===="%filename
     summarize(filename)
-  aggregate(sys.argv[1:], 'coverage.geojson')
+  # aggregate(sys.argv[1:], 'coverage.geojson')
   
   
