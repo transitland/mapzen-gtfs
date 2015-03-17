@@ -21,14 +21,18 @@ class Reader(object):
     None: entities.Entity
   }
 
-  def __init__(self, filename):
+  def __init__(self, filename, feedid=None):
     self.cache = {}
     self.filename = filename
+    self.feedid = feedid
     self.zipfile = None
     if filename.endswith('.zip'):
       self.open_zip(filename)
     elif filename.endswith('.geojson'):
       self.open_geojson(filename)
+
+  def id(self):
+    return self.feedid
 
   def open_zip(self, filename):
     """Open a GTFS zip file."""

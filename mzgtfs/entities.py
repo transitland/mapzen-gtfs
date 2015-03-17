@@ -13,6 +13,8 @@ def bbox(features):
     max(lons),
     max(lats)
   ]
+  
+##### Entities #####
 
 class Entity(object):
   """A GTFS Entity.
@@ -25,7 +27,9 @@ class Entity(object):
           StopTimes -> 
             Stops
   
-  """  
+  """
+  entity_type = None
+
   def __init__(self, data, feed=None):
     # The row data
     self.data = data
@@ -50,9 +54,13 @@ class Entity(object):
     """A reasonable display name for the entity."""
     raise NotImplementedError
     
-  def id(self):
+  def feedid(self):
     """Return internal GTFS identifier."""
-    raise NotImplementedError
+    return 'f-%s-%s-%s'%(
+      self.feed.id(),
+      self.entity_type,
+      self.id()
+    )
   
   def point(self):
     """Return a point geometry for this entity."""
@@ -103,6 +111,8 @@ class Entity(object):
     return set()
 
 class Agency(Entity):
+  entity_type = 'o'
+  
   """GTFS Agency."""
   def name(self):
     return self['agency_name']
@@ -207,6 +217,8 @@ class Agency(Entity):
     return stops
         
 class Route(Entity):
+  entity_type = 'r'
+  
   """GTFS Route."""
   def name(self):
     return self.get('route_short_name') or self.get('route_long_name')
@@ -270,6 +282,8 @@ class Route(Entity):
     return serves
     
 class Trip(Entity):
+  entity_type = 't'
+  
   def id(self):
     return self['trip_id']
   
@@ -290,6 +304,8 @@ class Trip(Entity):
     )
 
 class Stop(Entity):  
+  entity_type = 's'
+
   def id(self):
     return self['stop_id']
 
