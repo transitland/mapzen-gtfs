@@ -10,9 +10,6 @@ if __name__ == "__main__":
   parser.add_argument('--debug', 
     help='Show helpful debugging information', 
     action='store_true')
-  parser.add_argument('--geojson', 
-    help='Write out GeoJSON representation of agencies', 
-    action='store_true')
 
   args = parser.parse_args()
   g = reader.Reader(args.filename)
@@ -33,8 +30,14 @@ if __name__ == "__main__":
       for trip in agency.trips():
         print trip.data
 
-    if args.geojson:
-      outfile = 'o-%s.geojson'%agency.id()
-      print "Writing: %s"%outfile
-      with open(outfile, 'w') as f:
-        json.dump(agency.geojson(), f)
+    # Export
+    outfile = 'g-%s.geojson'%agency.id()
+    print "Writing: %s"%outfile
+    with open(outfile, 'w') as f:
+      json.dump(
+        agency.geojson(), 
+        f, 
+        sort_keys=True, 
+        indent=4, 
+        separators=(',', ': ')
+      )
