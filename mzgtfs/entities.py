@@ -118,7 +118,7 @@ class Agency(Entity):
     return self['agency_name']
 
   def id(self):
-    return self['agency_id']
+    return self.get('agency_id') or self.get('agency_name')
 
   def point(self):
     bbox = self.bbox()
