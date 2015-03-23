@@ -18,7 +18,7 @@ class TestReader(unittest.TestCase):
       'stop_name': 'Furnace Creek Resort (Demo)'
     }
 
-  def test_open_zip(self):
+  def test_read_stop(self):
     f = reader.Reader(self.test_gtfs_feed)
     stops = f.read('stops')
     found = filter(lambda x:x['stop_id'] == self.stop_expect['stop_id'], stops)[0]

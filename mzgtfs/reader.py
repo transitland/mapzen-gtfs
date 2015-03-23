@@ -1,4 +1,4 @@
-"""GTFS tools."""
+"""GTFS Feed Reader."""
 import csv
 import zipfile
 import collections
@@ -22,34 +22,19 @@ class Reader(object):
   }
 
   def __init__(self, filename, feedid=None):
+    """Filename required, and an optional feed identifier."""
     self.cache = {}
     self.filename = filename
     self.feedid = feedid
-    self.zipfile = None
-    if filename.endswith('.zip'):
-      self.open_zip(filename)
-    elif filename.endswith('.geojson'):
-      self.open_geojson(filename)
-
-  def id(self):
-    return self.feedid
-
-  def open_zip(self, filename):
-    """Open a GTFS zip file."""
     self.zipfile = zipfile.ZipFile(filename)
 
-  def open_geojson(self, filename):
-    """Open and read a GeoJSON representation of the GTFS feed."""
-    with open(filename) as f:
-      data = json.load(f)
-    agency = entities.Agency.from_geojson(data)
-    self.cache['agency'] = [agency]
-    self.cache['stops'] = agency.cache['stops']
-    self.cache['routes'] = []
-    
+  def id(self):
+    """Return the feed identifier."""
+    return self.feedid
+
   def readiter(self, filename, **kw):
-    """Iteratively read data from a zipped csv file."""
-    print "reading: %s.txt"%filename
+    """Iteratively read data from a GTFS table."""
+    # print "reading: %s.txt"%filename
     factory = self.factories.get(filename) or self.factories.get(None)
     with self.zipfile.open('%s.txt'%filename) as f:
       data = unicodecsv.DictReader(f, encoding='utf-8-sig')
@@ -57,7 +42,7 @@ class Reader(object):
         yield factory(row, feed=self, **kw)
         
   def read(self, filename):
-    """Read all the data from a zipped csv file."""
+    """Read all the data from a GTFS table."""
     if filename in self.cache:
       return self.cache[filename]
     try:
