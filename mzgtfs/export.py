@@ -1,11 +1,11 @@
-"""Provide useful information about a GTFS file."""
+"""Provide useful information about a GTFS file and export to JSON."""
 import argparse
 import json
 
 import reader
 
 if __name__ == "__main__":
-  parser = argparse.ArgumentParser(description='GTFS Information')
+  parser = argparse.ArgumentParser(description='GTFS Info and JSON export')
   parser.add_argument('filename', help='GTFS File')
   parser.add_argument('--debug', 
     help='Show helpful debugging information', 
@@ -31,7 +31,7 @@ if __name__ == "__main__":
         print trip.data
 
     # Export
-    outfile = 'g-%s.geojson'%agency.id()
+    outfile = 'export-%s.geojson'%agency.id()
     print "Writing: %s"%outfile
     with open(outfile, 'w') as f:
       json.dump(

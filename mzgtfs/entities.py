@@ -31,6 +31,7 @@ class Entity(object):
   entity_type = None
 
   def __init__(self, data, feed=None):
+    """Row data from DictReader, and reference to feed."""
     # The row data
     self.data = data
     # Reference to GTFS Reader
@@ -40,11 +41,11 @@ class Entity(object):
     self.parents = None
   
   def __getitem__(self, key):
-    # Proxy to row data
+    """Proxy to row data."""
     return self.data[key]
 
   def get(self, key, default=None):
-    """Get key."""
+    """Get row data by key."""
     try:
       return self[key]
     except KeyError:
@@ -76,6 +77,7 @@ class Entity(object):
     
   # Relationships
   def pclink(self, parent, child):
+    """Create a parent-child relationship."""
     if parent.children is None:
       parent.children = set()
     if child.parents is None:
@@ -85,35 +87,40 @@ class Entity(object):
     
   # Children
   def add_child(self, child):
+    """Add a child relationship."""
     self.pclink(self, child)
     
   def get_children(self):
-    """Return trips for this route."""
+    """Read and cache children."""
     if self.children is not None:
       return self.children
     self.children = self._read_children()
     return self.children
     
   def _read_children(self):
+    """Read children from GTFS feed."""
     return set()
   
   # Parents
   def add_parent(self, parent):
+    """Add a parent relationship."""
     self.pclink(parent, self)
     
   def get_parents(self):
+    """Read and cache parents."""
     if self.parents is not None:
       return self.parents
     self.parents = self._read_parents()
     return self.parents
     
   def _read_parents(self):
+    """Read the parents from the GTFS feed."""
     return set()
 
 class Agency(Entity):
+  """GTFS Agency Entity."""
   entity_type = 'o'
   
-  """GTFS Agency."""
   def name(self):
     return self['agency_name']
 
@@ -154,6 +161,15 @@ class Agency(Entity):
     ]]}
 
   # Agency methods.
+  @classmethod
+  def from_json(cls, filename):
+    """Load from a GeoJSON representation of agency."""
+    with open(filename) as f:
+      data = json.load(f)
+    agency = cls()
+    raise NotImplementedError
+    return agency
+
   def preload(self):
     """Pre-load routes, trips, stops, etc."""
     # First, load all routes.
@@ -181,7 +197,7 @@ class Agency(Entity):
         # set directly
         stop_time.add_child(stops_by_id[stop_time['stop_id']])
         stop_time.add_parent(trips_by_id[stop_time['trip_id']])
-
+  
   # Agency routes.
   routes = lambda self:self.get_children()
   def _read_children(self):
@@ -217,9 +233,9 @@ class Agency(Entity):
     return stops
         
 class Route(Entity):
+  """GTFS Route Entity."""
   entity_type = 'r'
   
-  """GTFS Route."""
   def name(self):
     return self.get('route_short_name') or self.get('route_long_name')
 
@@ -282,6 +298,7 @@ class Route(Entity):
     return serves
     
 class Trip(Entity):
+  """GTFS Trip Entity."""
   entity_type = 't'
   
   def id(self):
@@ -298,12 +315,14 @@ class Trip(Entity):
     ])
     
   def stop_sequence(self):
+    """Return the sorted StopTimes for this trip."""
     return sorted(
       self.stop_times(), 
       key=lambda x:int(x.get('stop_sequence'))
     )
 
 class Stop(Entity):  
+  """GTFS Stop Entity."""
   entity_type = 's'
 
   def id(self):
@@ -345,7 +364,7 @@ class Stop(Entity):
     return serves
 
 class StopTime(Entity):
-  """GTFS stop_time."""
+  """GTFS Stop Time Entity."""
 
   def stops(self):
     return self.children
@@ -353,7 +372,3 @@ class StopTime(Entity):
   def point(self):
     # Ugly hack.
     return list(self.children)[0].point()
-
-class Station(Entity):
-  """A grouping of related stops."""
-  pass
