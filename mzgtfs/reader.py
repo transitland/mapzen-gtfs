@@ -21,20 +21,17 @@ class Reader(object):
     None: entities.Entity
   }
 
-  def __init__(self, filename, feedid=None):
-    """Filename required, and an optional feed identifier."""
+  def __init__(self, filename, debug=False):
+    """Filename required."""
     self.cache = {}
     self.filename = filename
-    self.feedid = feedid
     self.zipfile = zipfile.ZipFile(filename)
-
-  def id(self):
-    """Return the feed identifier."""
-    return self.feedid
+    self.debug = debug
 
   def readiter(self, filename, **kw):
     """Iteratively read data from a GTFS table."""
-    # print "reading: %s.txt"%filename
+    if self.debug:
+      print "reading: %s.txt"%filename
     factory = self.factories.get(filename) or self.factories.get(None)
     with self.zipfile.open('%s.txt'%filename) as f:
       data = unicodecsv.DictReader(f, encoding='utf-8-sig')

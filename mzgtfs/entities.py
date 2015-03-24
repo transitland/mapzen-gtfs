@@ -54,15 +54,7 @@ class Entity(object):
   def name(self):
     """A reasonable display name for the entity."""
     raise NotImplementedError
-    
-  def feedid(self):
-    """Return internal GTFS identifier."""
-    return 'f-%s-%s-%s'%(
-      self.feed.id(),
-      self.entity_type,
-      self.id()
-    )
-  
+      
   def point(self):
     """Return a point geometry for this entity."""
     raise NotImplementedError  
@@ -74,6 +66,14 @@ class Entity(object):
   def geometry(self):
     """Return a GeoJSON-type geometry for this entity."""
     raise NotImplementedError
+    
+  def feedid(self, feedid):
+    """Return an identifier for a GTFS entity."""
+    return 'f-%s-%s-%s'%(
+      feedid,
+      self.entity_type,
+      self.id()
+    )
     
   # Relationships
   def pclink(self, parent, child):
