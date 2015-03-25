@@ -28,7 +28,7 @@ class Reader(object):
     self.zipfile = zipfile.ZipFile(filename)
     self.debug = debug
 
-  def readiter(self, filename, **kw):
+  def readiter_old(self, filename, **kw):
     """Iteratively read data from a GTFS table."""
     if self.debug:
       print "reading: %s.txt"%filename
@@ -37,6 +37,21 @@ class Reader(object):
       data = unicodecsv.DictReader(f, encoding='utf-8-sig')
       for row in data:
         yield factory(row, feed=self, **kw)
+
+  def readiter(self, filename):
+    """Iteratively read data from a GTFS table."""
+    if self.debug:
+      print "reading: %s.txt"%filename
+    factory = self.factories.get(filename) or self.factories.get(None)
+    with self.zipfile.open('%s.txt'%filename) as f:
+      data = unicodecsv.reader(f, encoding='utf-8-sig')
+      tableheader = data.next()
+      tableclass = collections.namedtuple(
+        'EntityNamedTuple', 
+        map(str, tableheader)
+      )
+      for row in data:
+        yield factory(tableclass._make(row), feed=self)
         
   def read(self, filename):
     """Read all the data from a GTFS table."""

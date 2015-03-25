@@ -1,19 +1,8 @@
 """GTFS entities."""
 import collections
 
-def bbox(features):
-  points = [s.point() for s in features]
-  if not points:
-    raise ValueError("Cannot create bbox with no features.")
-  lons = [p[0] for p in points]
-  lats = [p[1] for p in points]
-  return [
-    min(lons),
-    min(lats),
-    max(lons),
-    max(lats)
-  ]
-  
+import geom
+
 ##### Entities #####
 
 class Entity(object):
@@ -42,13 +31,13 @@ class Entity(object):
   
   def __getitem__(self, key):
     """Proxy to row data."""
-    return self.data[key]
+    return getattr(self.data, key)
 
   def get(self, key, default=None):
     """Get row data by key."""
     try:
       return self[key]
-    except KeyError:
+    except AttributeError:
       return default
 
   def name(self):
@@ -122,7 +111,7 @@ class Agency(Entity):
   entity_type = 'o'
   
   def name(self):
-    return self['agency_name']
+    return self.get('agency_name')
 
   def id(self):
     return self.get('agency_id') or self.get('agency_name')
@@ -131,11 +120,11 @@ class Agency(Entity):
     bbox = self.bbox()
     return [
       (bbox[0]+bbox[2])/2,
-      (bbox[1]+bbpx[3])/2      
+      (bbox[1]+bbox[3])/2      
     ]
 
   def bbox(self):
-    return bbox(self.stops())
+    return geom.bbox(self.stops())
 
   def geojson(self):
     return {
@@ -149,16 +138,13 @@ class Agency(Entity):
     }
 
   def geometry(self):
-    b = self.bbox()
+    hull = geom.convex_hull(self.stops())
     return {
       'type': 'Polygon',
-      'coordinates': [[
-        [b[0], b[1]],
-        [b[0], b[3]],
-        [b[2], b[3]],
-        [b[2], b[1]],
-        [b[0], b[1]]
-    ]]}
+      'coordinates': [
+        hull + [hull[0]]
+      ]
+    }    
 
   # Agency methods.
   @classmethod
@@ -173,6 +159,7 @@ class Agency(Entity):
   def preload(self):
     """Pre-load routes, trips, stops, etc."""
     # First, load all routes.
+    print 'preload...'
     routes_by_id = {}
     for route in self.routes():
       routes_by_id[route.id()] = route
@@ -197,6 +184,7 @@ class Agency(Entity):
         # set directly
         stop_time.add_child(stops_by_id[stop_time['stop_id']])
         stop_time.add_parent(trips_by_id[stop_time['trip_id']])
+    print '...done'
   
   # Agency routes.
   routes = lambda self:self.get_children()
@@ -240,10 +228,10 @@ class Route(Entity):
     return self.get('route_short_name') or self.get('route_long_name')
 
   def id(self):
-    return self['route_id']
+    return self.get('route_id')
 
   def bbox(self):
-    return bbox(self.stops())
+    return geom.bbox(self.stops())
 
   def geojson(self):
     return {
@@ -302,7 +290,7 @@ class Trip(Entity):
   entity_type = 't'
   
   def id(self):
-    return self['trip_id']
+    return self.get('trip_id')
   
   # Stop times
   stop_times = lambda self:self.get_children()
@@ -326,15 +314,13 @@ class Stop(Entity):
   entity_type = 's'
 
   def id(self):
-    return self['stop_id']
+    return self.get('stop_id')
 
   def name(self):
-    return self['stop_name']
+    return self.get('stop_name')
     
   def point(self):
-    if 'stop_lon' not in self.data or 'stop_lat' not in self.data:
-      raise ValueError("Point is missing geometry.")
-    return float(self.data['stop_lon']), float(self.data['stop_lat'])
+    return float(self.get('stop_lon')), float(self.get('stop_lat'))
 
   def bbox(self):
     c = self.point()
