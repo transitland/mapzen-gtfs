@@ -4,7 +4,7 @@ A simple GTFS library.
 
 Supports reading individual GTFS tables, or constructing a graph to represent each agency in a feed.
 
-## Reading a single table
+## Reading tables
 
 ```
 >>> import mzgtfs.feed
@@ -17,7 +17,7 @@ Supports reading individual GTFS tables, or constructing a graph to represent ea
 u'Fremont - Daly City'
 ```
 
-## Constructing an agency graph
+## Working with an Agency
 
 Many GTFS contain multiple agencies. You can construct a graph for each agency that includes only the relevant routes, stops, etc., by calling preload(). This can then be searched, or exported using json().
 
@@ -40,6 +40,16 @@ u'Embarcadero'
 >>> bart.json() # dict suitable for json.dump()
 {'name': u'Bay Area Rapid Transit', ...}
 ```
+
+## Entities
+
+Classes are currently provided for the following entities:
+
+	* Agency
+	* Route
+	* Trip
+	* StopTime
+	* Stop
 
 ## Contributing
 
