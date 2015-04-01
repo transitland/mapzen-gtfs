@@ -2,7 +2,7 @@
 import argparse
 import json
 
-import reader
+import feed
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(description='GTFS Info and JSON export')
@@ -12,7 +12,7 @@ if __name__ == "__main__":
     action='store_true')
 
   args = parser.parse_args()
-  g = reader.Reader(args.filename)
+  g = feed.Feed(args.filename)
   print "===== GTFS: %s ====="%g.filename
   for agency in g.agencies():
     agency.preload()
@@ -35,7 +35,7 @@ if __name__ == "__main__":
     print "Writing: %s"%outfile
     with open(outfile, 'w') as f:
       json.dump(
-        agency.geojson(), 
+        agency.json(), 
         f, 
         sort_keys=True, 
         indent=4, 

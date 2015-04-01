@@ -3,7 +3,7 @@ import unittest
 import os
 import json
 
-import reader
+import feed
 import entities
 
 class TestAgency(unittest.TestCase):

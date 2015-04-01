@@ -6,12 +6,13 @@ import json
 
 import unicodecsv
 
+import util
 import entities
 
-class Reader(object):
+class Feed(object):
   """Read a GTFS feed."""
 
-  # Classes for each zipped file.
+  # Classes for each GTFS table.
   factories = {
     'agency': entities.Agency,
     'routes': entities.Route,
@@ -28,18 +29,8 @@ class Reader(object):
     self.zipfile = zipfile.ZipFile(filename)
     self.debug = debug
 
-  def readiter_old(self, filename, **kw):
-    """Iteratively read data from a GTFS table."""
-    if self.debug:
-      print "reading: %s.txt"%filename
-    factory = self.factories.get(filename) or self.factories.get(None)
-    with self.zipfile.open('%s.txt'%filename) as f:
-      data = unicodecsv.DictReader(f, encoding='utf-8-sig')
-      for row in data:
-        yield factory(row, feed=self, **kw)
-
-  def readiter(self, filename):
-    """Iteratively read data from a GTFS table."""
+  def iterread(self, filename):
+    """Iteratively read data from a GTFS table. Returns namedtuples."""
     if self.debug:
       print "reading: %s.txt"%filename
     factory = self.factories.get(filename) or self.factories.get(None)
@@ -54,11 +45,11 @@ class Reader(object):
         yield factory(tableclass._make(row), feed=self)
         
   def read(self, filename):
-    """Read all the data from a GTFS table."""
+    """Read all the data from a GTFS table. Returns namedtuples."""
     if filename in self.cache:
       return self.cache[filename]
     try:
-      data = list(self.readiter(filename))
+      data = list(self.iterread(filename))
     except KeyError:
       data = []
     self.cache[filename] = data
@@ -67,3 +58,23 @@ class Reader(object):
   def agencies(self):
     """Return the agencies in this feed."""
     return self.read('agency')
+
+  def agency(self, id):
+    """Return a single agency by ID."""
+    return util.filtfirst(self.agencies(), id=id)
+
+  def routes(self):
+    """Return the routes in this feed."""
+    return self.read('routes')
+
+  def route(self, id):
+    """Return a single route by ID."""
+    return util.filtfirst(self.routes(), id=id)
+
+  def stops(self):
+    """Return the stops."""
+    return self.read('stops')
+
+  def stop(self, id):
+    """Return a single stop by ID."""
+    return util.filtfirst(self.stop(), id=id)
