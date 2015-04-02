@@ -42,6 +42,3 @@ class TestUtil(unittest.TestCase):
       util.filtfirst(self.testdata, name='Asdf')
     with self.assertRaises(ValueError):
       util.filtfirst(self.testdata, id='0')
-      
-if __name__ == '__main__':
-    unittest.main()

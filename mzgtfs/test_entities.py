@@ -3,163 +3,164 @@ import unittest
 import os
 import json
 import collections
+import copy
 
 import feed
 import entities
 
+def preload_agency():
+  test_gtfs_feed = os.path.join('examples', 'sample-feed.zip')
+  f = feed.Feed(test_gtfs_feed)
+  agency = f.agency('DTA')
+  agency.preload()
+  return agency
+
 class TestEntity(unittest.TestCase):
   """Test Entity methods, and unimplemented abstract methods."""
-  data = collections.OrderedDict({
+  expect = collections.OrderedDict({
     'foo':'bar',
     'rab':'oof'
   })
 
   def test_init(self):
-    agency = entities.Entity(self.data)
+    agency = entities.Entity(self.expect)
   
   def test_get(self):
-    agency = entities.Entity(self.data)
-    for key in self.data.keys():
-      assert agency.get(key) == self.data.get(key)
-      assert agency[key] == self.data[key]
+    agency = entities.Entity(self.expect)
+    for key in self.expect.keys():
+      assert agency.get(key) == self.expect.get(key)
+      assert agency[key] == self.expect[key]
 
   def test_get_keyerror(self):
-    agency = entities.Entity(self.data)    
+    agency = entities.Entity(self.expect)    
     with self.assertRaises(KeyError):
       agency['asdf']
   
   def test_get_default(self):
-    agency = entities.Entity(self.data)    
+    agency = entities.Entity(self.expect)    
     assert agency.get('asdf','test') == 'test'
     
   def test_get_namedtuple(self):
-    nt = collections.namedtuple('test', self.data.keys())
-    agency = entities.Entity(nt(**self.data))
-    for key in self.data.keys():
-      assert agency.get(key) == self.data.get(key)
-      assert agency[key] == self.data[key]
+    nt = collections.namedtuple('test', self.expect.keys())
+    agency = entities.Entity(nt(**self.expect))
+    for key in self.expect.keys():
+      assert agency.get(key) == self.expect.get(key)
+      assert agency[key] == self.expect[key]
 
   def test_get_namedtuple_keyerror(self):
-    nt = collections.namedtuple('test', self.data.keys())
-    agency = entities.Entity(nt(**self.data))
+    nt = collections.namedtuple('test', self.expect.keys())
+    agency = entities.Entity(nt(**self.expect))
     with self.assertRaises(KeyError):
       agency['asdf']
 
   def test_name(self):
-    entity = entities.Entity(self.data)
+    entity = entities.Entity(self.expect)
     with self.assertRaises(NotImplementedError):
       entity.name()
 
   def test_id(self):
-    entity = entities.Entity(self.data)
+    entity = entities.Entity(self.expect)
     with self.assertRaises(NotImplementedError):
       entity.id()
 
   def test_point(self):
-    entity = entities.Entity(self.data)
+    entity = entities.Entity(self.expect)
     with self.assertRaises(NotImplementedError):
       entity.point()
 
   def test_bbox(self):
-    entity = entities.Entity(self.data)
+    entity = entities.Entity(self.expect)
     with self.assertRaises(NotImplementedError):
       entity.bbox()
 
   def test_geometry(self):
-    entity = entities.Entity(self.data)
+    entity = entities.Entity(self.expect)
     with self.assertRaises(NotImplementedError):
       entity.geometry()
 
   def test_from_json(self):
     with self.assertRaises(NotImplementedError):
-      entity = entities.Entity.from_json(self.data)
+      entity = entities.Entity.from_json(self.expect)
 
   def test_json(self):
-    entity = entities.Entity(self.data)
+    entity = entities.Entity(self.expect)
     with self.assertRaises(NotImplementedError):
       entity.json()
 
   # Relationships
   def test_pclink(self):
-    agency1 = entities.Entity(self.data)    
-    agency2 = entities.Entity(self.data)    
+    agency1 = entities.Entity(self.expect)    
+    agency2 = entities.Entity(self.expect)    
     agency1.pclink(agency1, agency2)
     assert agency2 in agency1.get_children()
     assert agency1 in agency2.get_parents()
 
   def test_add_child(self):
-    agency1 = entities.Entity(self.data)    
-    agency2 = entities.Entity(self.data)    
+    agency1 = entities.Entity(self.expect)    
+    agency2 = entities.Entity(self.expect)    
     agency1.add_child(agency2)
     assert agency2 in agency1.get_children()
     assert agency1 in agency2.get_parents()
 
   def test_add_parent(self):
-    agency1 = entities.Entity(self.data)    
-    agency2 = entities.Entity(self.data)    
+    agency1 = entities.Entity(self.expect)    
+    agency2 = entities.Entity(self.expect)    
     agency2.add_parent(agency1)
     assert agency2 in agency1.get_children()
     assert agency1 in agency2.get_parents()
 
   def test_get_parents(self):
     self.test_add_parent()
-    entity = entities.Entity(self.data)    
+    entity = entities.Entity(self.expect)    
     assert not entity.get_parents()
   
   def test_get_children(self):
     self.test_add_child()
-    entity = entities.Entity(self.data)    
+    entity = entities.Entity(self.expect)    
     assert not entity.get_children()
     
   def test__read_children(self):
-    entity = entities.Entity(self.data)
+    entity = entities.Entity(self.expect)
     assert not entity._read_children()
     
   def test__read_parents(self):
-    entity = entities.Entity(self.data)
+    entity = entities.Entity(self.expect)
     assert not entity._read_parents()
     
 class TestAgency(unittest.TestCase):
   """Test Agency."""
-  test_gtfs_feed = os.path.join('examples', 'sample-feed.zip')
-  data = collections.OrderedDict({
+  expect = collections.OrderedDict({
     'agency_url': 'http://google.com', 
     'agency_name': 'Demo Transit Authority', 
     'agency_id': 'DTA', 
     'agency_timezone': 'America/Los_Angeles'
   })
 
-  def _preload(self):
-    f = feed.Feed(self.test_gtfs_feed)
-    agency = f.agency(self.data['agency_id'])
-    agency.preload()
-    return agency
-  
   def test_name(self):
-    agency = entities.Agency(self.data)    
-    assert agency.name() == self.data['agency_name']
+    agency = entities.Agency(self.expect)    
+    assert agency.name() == self.expect['agency_name']
     
   def test_id(self):
-    agency = entities.Agency(self.data)    
-    assert agency.id() == self.data['agency_id']
+    agency = entities.Agency(self.expect)    
+    assert agency.id() == self.expect['agency_id']
     
   def test_feedid(self):    
-    agency = entities.Agency(self.data)    
+    agency = entities.Agency(self.expect)    
     assert agency.feedid('f-test') == 'f-test-o-DTA'
 
   def test__read_parents(self):
     # empty set
-    agency = self._preload()
+    agency = preload_agency()
     assert not agency._read_parents()
 
   def test__read_children(self):
     # check for 5 child routes
-    agency = self._preload()
+    agency = preload_agency()
     assert len(agency._read_children()) == 5
 
   # Must get from Feed for remaining tests...
   def test_point(self):
-    agency = self._preload()
+    agency = preload_agency()
     point = agency.point()
     expect = [-116.76705100000001, 36.670485]
     for i,j in zip(point, expect):
@@ -168,14 +169,13 @@ class TestAgency(unittest.TestCase):
     self.assertAlmostEqual(point[1], expect[1])
     
   def test_bbox(self):
-    agency = self._preload()
-    bbox = agency.bbox()
+    agency = preload_agency()
     expect = [-117.133162, 36.425288, -116.40094, 36.915682]
-    for i,j in zip(bbox, expect):
+    for i,j in zip(agency.bbox(), expect):
       self.assertAlmostEqual(i,j)
   
   def test_geometry(self):
-    agency = self._preload()
+    agency = preload_agency()
     geometry = agency.geometry()
     # a beast...
     expect = [
@@ -193,7 +193,7 @@ class TestAgency(unittest.TestCase):
   
   def test_json(self):
     # Basic checks for JSON sanity.
-    agency = self._preload()
+    agency = preload_agency()
     data = agency.json()
     assert data['name'] == 'Demo Transit Authority'
     assert 'geometry' in data
@@ -203,35 +203,157 @@ class TestAgency(unittest.TestCase):
     assert json.loads(json.dumps(data)) 
   
   def test_routes(self):
-    agency = self._preload()
+    agency = preload_agency()
     assert len(agency.routes()) == 5
   
   def test_route(self):
-    agency = self._preload()
+    agency = preload_agency()
     assert agency.route(id='AB')
     
   def test_trips(self):
-    agency = self._preload()
+    agency = preload_agency()
     assert len(agency.trips()) == 11
   
   def test_trip(self):
-    agency = self._preload()
+    agency = preload_agency()
     assert agency.trip('AB1')
     
   def test_stops(self):
-    agency = self._preload()
+    agency = preload_agency()
     assert len(agency.stops()) == 9
     
   def test_stop(self):
-    agency = self._preload()
+    agency = preload_agency()
     assert agency.stop('NANAA')
     
   def test_stop_times(self):
-    agency = self._preload()
+    agency = preload_agency()
     assert len(agency.stop_times()) == 28
     
-class TestRoute(unittest.TestCase):
-  pass
+class TestRoute(unittest.TestCase):  
+  expect = {
+    'route_long_name': 'Airport - Bullfrog', 
+    'route_id': 'AB', 
+    'route_type': '3', 
+    'route_text_color': '', 
+    'agency_id': 'DTA', 
+    'route_color': '', 
+    'route_url': '', 
+    'route_desc': '', 
+    'route_short_name': '10'
+  }
+
+  def test_name(self):
+    # Test name
+    entity = entities.Route(self.expect)    
+    assert entity.name() == self.expect['route_short_name']
+    # Test fallback
+    expect = copy.copy(self.expect)
+    expect.pop('route_short_name')
+    entity = entities.Route(expect)    
+    assert entity.name() == self.expect['route_long_name']
+  
+  def test_id(self):
+    entity = entities.Route(self.expect)    
+    assert entity.name() == self.expect['route_id']
     
-if __name__ == '__main__':
-    unittest.main()
+  def test_id(self):
+    entity = entities.Route(self.expect)
+    assert entity.id() == self.expect['route_id']
+  
+  # Requires preload
+  def test_bbox(self):
+    agency = preload_agency()
+    route = agency.route(self.expect['route_id'])
+    expect = [-116.81797, 36.868446, -116.784582, 36.88108]
+    for i,j in zip(route.bbox(), expect):
+      self.assertAlmostEqual(i,j)
+  
+  def test_json(self):
+    agency = preload_agency()
+    route = agency.route(self.expect['route_id'])
+    data = route.json()
+    assert data['name'] == route.name()
+    assert 'geometry' in data
+    assert 'bbox' in data
+    # Round trip
+    assert json.loads(json.dumps(data)) 
+
+  def test_geometry(self):
+    agency = preload_agency()
+    route = agency.route(self.expect['route_id'])
+    geometry = route.geometry()
+    assert geometry['type'] == 'MultiLineString'
+    # Line 1
+    expect = [
+      (-116.784582, 36.868446), 
+      (-116.81797, 36.88108)]
+    for i,j in zip(geometry['coordinates'][0], expect):
+      self.assertAlmostEqual(i[0],j[0])
+      self.assertAlmostEqual(i[1],j[1])
+    # Line 2
+    expect = [
+      (-116.81797, 36.88108), 
+      (-116.784582, 36.868446)
+    ]
+    for i,j in zip(geometry['coordinates'][1], expect):
+      self.assertAlmostEqual(i[0],j[0])
+      self.assertAlmostEqual(i[1],j[1])
+    
+  def test__read_children(self):
+    agency = preload_agency()
+    route = agency.route(self.expect['route_id'])
+    assert len(route._read_children()) == 2
+        
+  def test_trips(self):
+    agency = preload_agency()
+    route = agency.route(self.expect['route_id'])
+    assert len(route.trips()) == 2
+    
+  def test_stops(self):
+    agency = preload_agency()
+    route = agency.route(self.expect['route_id'])
+    assert len(route.stops()) == 2
+    
+# class TestTrip(unittest.TestCase):
+#   def test_id(self):
+#     pass
+#
+#   def test__read_children(self):
+#     pass
+#
+#   def test_stop_times(self):
+#     pass
+#
+#   def test_stop_sequence(self):
+#     pass
+#
+# class TestStopTime(unittest.TestCase):
+#   def test_point(self):
+#     pass
+#
+#   def test_stops(self):
+#     pass
+#
+# class TestStop(unittest.TestCase):
+#   def test_id(self):
+#     pass
+#
+#   def test_name(self):
+#     pass
+#
+#   def test_point(self):
+#     pass
+#
+#   def test_bbox(self):
+#     pass
+#
+#   def test_json(self):
+#     pass
+#
+#   def test_geometry(self):
+#     pass
+#
+#   def test_routes(self):
+#     pass
+#

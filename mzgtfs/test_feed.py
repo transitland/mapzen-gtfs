@@ -109,6 +109,3 @@ class TestFeed(unittest.TestCase):
     data = f.stop(self.stop_expect['stop_id'])
     for k in self.stop_expect:
       assert self.stop_expect[k] == data[k]
-      
-if __name__ == '__main__':
-    unittest.main()
