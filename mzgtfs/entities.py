@@ -44,13 +44,20 @@ class Entity(object):
   # GTFS row data.
   def __getitem__(self, key):
     """Proxy to row data."""
-    return getattr(self.data, key)
+    # Work with either a dict or a namedtuple.
+    if hasattr(self.data, '_asdict'):
+      try:
+        return getattr(self.data, key)
+      except AttributeError:
+        raise KeyError
+    else:
+      return self.data[key]
 
   def get(self, key, default=None):
     """Get row data by key."""
     try:
       return self[key]
-    except AttributeError:
+    except KeyError:
       return default
   
   # Name methods.

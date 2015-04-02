@@ -36,22 +36,23 @@ class Feed(object):
     factory = self.factories.get(filename) or self.factories.get(None)
     with self.zipfile.open('%s.txt'%filename) as f:
       data = unicodecsv.reader(f, encoding='utf-8-sig')
-      tableheader = data.next()
-      tableclass = collections.namedtuple(
+      header = data.next()
+      headerlen = len(header)
+      ent = collections.namedtuple(
         'EntityNamedTuple', 
-        map(str, tableheader)
+        map(str, header)
       )
       for row in data:
-        yield factory(tableclass._make(row), feed=self)
+        # pad to length if necessary... :(
+        if len(row) < headerlen:
+          row += ['']*(headerlen-len(row))
+        yield factory(ent._make(row), feed=self)
         
   def read(self, filename):
     """Read all the data from a GTFS table. Returns namedtuples."""
     if filename in self.cache:
       return self.cache[filename]
-    try:
-      data = list(self.iterread(filename))
-    except KeyError:
-      data = []
+    data = list(self.iterread(filename))
     self.cache[filename] = data
     return data
 
@@ -77,4 +78,4 @@ class Feed(object):
 
   def stop(self, id):
     """Return a single stop by ID."""
-    return util.filtfirst(self.stop(), id=id)
+    return util.filtfirst(self.stops(), id=id)
