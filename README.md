@@ -1,5 +1,7 @@
 # Mapzen GTFS
 
+[![Circle CI](https://circleci.com/gh/transitland/mapzen-gtfs.png?style=badge)](https://circleci.com/gh/transitland/mapzen-gtfs)
+
 A simple GTFS library. 
 
 Supports reading individual GTFS tables, or constructing a graph to represent each agency in a feed.
