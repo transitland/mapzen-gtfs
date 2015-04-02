@@ -1,5 +1,7 @@
 """Utilities."""
 
+import os
+
 def filtany(entities, **kw):
   """Filter a set of entities based on method return. Use keyword arguments.
   
@@ -22,4 +24,11 @@ def filtfirst(entities, **kw):
   if not ret:
     raise ValueError('No result')
   return ret[0]
+
+def example_feed(feed='sample-feed.zip'):
+  return os.path.join(
+    os.path.dirname(__file__), 
+    'examples',
+    feed
+    )
   

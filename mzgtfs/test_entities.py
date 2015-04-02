@@ -7,10 +7,10 @@ import copy
 
 import feed
 import entities
+import util
 
 def preload_agency():
-  test_gtfs_feed = os.path.join('examples', 'sample-feed.zip')
-  f = feed.Feed(test_gtfs_feed)
+  f = feed.Feed(util.example_feed())
   agency = f.agency('DTA')
   agency.preload()
   return agency
