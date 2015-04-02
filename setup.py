@@ -1,4 +1,4 @@
-from distutils.core import setup
+from setuptools import setup
 
 import mzgtfs
 
@@ -10,5 +10,6 @@ setup(
   author_email='ian@mapzen.com',
   url='http://mapzen.com/',
   license='License :: OSI Approved :: MIT License',
-  packages=['mzgtfs']
+  packages=['mzgtfs'],
+  install_requires=['unicodecsv']
 )
