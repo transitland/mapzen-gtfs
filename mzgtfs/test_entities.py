@@ -9,9 +9,10 @@ import feed
 import entities
 import util
 
-def preload_agency():
-  f = feed.Feed(util.example_feed())
-  agency = f.agency('DTA')
+def preload_agency(**kw):
+  agency_id = kw.pop('agency_id', 'DTA')
+  f = feed.Feed(util.example_feed(**kw))
+  agency = f.agency(agency_id)
   agency.preload()
   return agency
 
@@ -157,6 +158,13 @@ class TestAgency(unittest.TestCase):
     # check for 5 child routes
     agency = preload_agency()
     assert len(agency._read_children()) == 5
+    
+  def test__read_children_multipleagencies(self):
+    agency = preload_agency(
+      feed='sample-feed-multipleagencies.zip', 
+      agency_id='ATD'
+    )
+    assert len(agency._read_children()) == 0
 
   # Must get from Feed for remaining tests...
   def test_point(self):
@@ -252,10 +260,6 @@ class TestRoute(unittest.TestCase):
     expect.pop('route_short_name')
     entity = entities.Route(expect)    
     assert entity.name() == self.expect['route_long_name']
-  
-  def test_id(self):
-    entity = entities.Route(self.expect)    
-    assert entity.name() == self.expect['route_id']
     
   def test_id(self):
     entity = entities.Route(self.expect)
@@ -271,11 +275,11 @@ class TestRoute(unittest.TestCase):
   
   def test_json(self):
     agency = preload_agency()
-    route = agency.route(self.expect['route_id'])
-    data = route.json()
-    assert data['name'] == route.name()
-    assert 'geometry' in data
-    assert 'bbox' in data
+    entity = agency.route(self.expect['route_id'])
+    data = entity.json()
+    assert data['name'] == entity.name()
+    assert data['type'] == 'Feature'
+    assert data['geometry']['type'] == 'MultiLineString'
     # Round trip
     assert json.loads(json.dumps(data)) 
 
@@ -315,45 +319,92 @@ class TestRoute(unittest.TestCase):
     route = agency.route(self.expect['route_id'])
     assert len(route.stops()) == 2
     
-# class TestTrip(unittest.TestCase):
-#   def test_id(self):
-#     pass
-#
-#   def test__read_children(self):
-#     pass
-#
-#   def test_stop_times(self):
-#     pass
-#
-#   def test_stop_sequence(self):
-#     pass
-#
-# class TestStopTime(unittest.TestCase):
-#   def test_point(self):
-#     pass
-#
-#   def test_stops(self):
-#     pass
-#
-# class TestStop(unittest.TestCase):
-#   def test_id(self):
-#     pass
-#
-#   def test_name(self):
-#     pass
-#
-#   def test_point(self):
-#     pass
-#
-#   def test_bbox(self):
-#     pass
-#
-#   def test_json(self):
-#     pass
-#
-#   def test_geometry(self):
-#     pass
-#
-#   def test_routes(self):
-#     pass
-#
+class TestTrip(unittest.TestCase):
+  expect = {
+    'route_id': 'CITY', 
+    'trip_headsign': '', 
+    'block_id': '', 
+    'direction_id': '1', 
+    'shape_id': '',
+    'trip_id': 'CITY2', 
+    'service_id': 'FULLW'
+  }
+  
+  def test__read_children(self):
+    agency = preload_agency()
+    entity = agency.trip(self.expect['trip_id'])
+    assert len(entity._read_children()) == 5
+
+  def test_stop_times(self):
+    agency = preload_agency()
+    entity = agency.trip(self.expect['trip_id'])
+    assert len(entity.stop_times()) == 5
+
+  def test_stop_sequence(self):
+    agency = preload_agency()
+    entity = agency.trip(self.expect['trip_id'])
+    stop_sequence = entity.stop_sequence()
+    assert len(stop_sequence) == 5
+    expect = ['1', '2', '3', '4', '5']
+    for i,j in zip(stop_sequence, expect):
+      assert i.get('stop_sequence') == j
+
+class TestStopTime(unittest.TestCase):
+  def test_point(self):
+    pass
+
+  def test_stops(self):
+    pass
+
+class TestStop(unittest.TestCase):
+  expect = {
+    'stop_lat': '36.425288', 
+    'stop_lon': '-117.133162', 
+    'stop_id': 'FUR_CREEK_RES', 
+    'stop_name': 'Furnace Creek Resort (Demo)'
+  }
+    
+  def test_id(self):
+    entity = entities.Stop(self.expect)
+    assert entity.id() == self.expect['stop_id']
+
+  def test_name(self):
+    entity = entities.Stop(self.expect)    
+    assert entity.name() == self.expect['stop_name']
+
+  def test_point(self):
+    entity = entities.Stop(self.expect)    
+    expect = (-117.133162, 36.425288)
+    for i,j in zip(entity.point(), expect):
+      self.assertAlmostEqual(i,j)
+
+  def test_bbox(self):
+    entity = entities.Stop(self.expect)    
+    expect = [-117.133162, 36.425288, -117.133162, 36.425288]
+    for i,j in zip(entity.bbox(), expect):
+      self.assertAlmostEqual(i,j)
+
+  def test_json(self):
+    entity = entities.Stop(self.expect)    
+    data = entity.json()
+    assert data['name'] == entity.name()
+    assert data['type'] == 'Feature'
+    assert data['geometry']['type'] == 'Point'
+    assert data['properties']
+    # Round trip
+    assert json.loads(json.dumps(data)) 
+
+  def test_geometry(self):
+    entity = entities.Stop(self.expect)    
+    expect = (-117.133162, 36.425288)
+    geometry = entity.geometry()
+    assert geometry['type'] == 'Point'
+    for i,j in zip(geometry['coordinates'], expect):
+      self.assertAlmostEqual(i,j)
+
+  def test_routes(self):
+    agency = preload_agency()
+    entity = agency.stop(self.expect['stop_id'])
+    routes = entity.routes()
+    assert len(routes) == 1
+    assert list(routes)[0].id() == 'BFC'
