@@ -42,3 +42,7 @@ class TestUtil(unittest.TestCase):
       util.filtfirst(self.testdata, name='Asdf')
     with self.assertRaises(ValueError):
       util.filtfirst(self.testdata, id='0')
+      
+  def test_example_feed(self):
+    expect = util.example_feed()
+    assert os.path.exists(expect)
