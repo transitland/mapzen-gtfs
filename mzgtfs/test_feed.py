@@ -77,6 +77,15 @@ class TestFeed(unittest.TestCase):
     f = feed.Feed(util.example_feed())
     with self.assertRaises(KeyError):
       f.read('invalidfile')
+      
+  def test_read_padding(self):
+    # The Google GTFS example feed is missing columns in
+    # stop_times.txt. Check the padding mechanism works.
+    f = feed.Feed(util.example_feed())
+    data = f.read('stop_times')
+    # Check that all 9 elements are present.
+    for entity in f.read('stop_times'):
+      assert len(entity.data) == 9
 
   def test_agencies(self):
     f = feed.Feed(util.example_feed())
