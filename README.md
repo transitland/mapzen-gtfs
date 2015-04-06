@@ -6,6 +6,22 @@ A simple GTFS library.
 
 Supports reading individual GTFS tables, or constructing a graph to represent each agency in a feed.
 
+## Installation
+
+Installation using pip:
+
+```
+pip install mzgtfs
+```
+
+Alternatively, [download from PyPi](https://pypi.python.org/pypi/mzgtfs) or clone this repository, and install using setup.py:
+
+```
+python ./setup.py install
+```
+
+The dependencies [mzgeohash](https://github.com/transitland/mapzen-geohash) and [unicodecsv](https://pypi.python.org/pypi/unicodecsv) will be automatically installed using the above methods.
+
 ## Reading tables
 
 ```
