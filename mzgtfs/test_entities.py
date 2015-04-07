@@ -24,108 +24,108 @@ class TestEntity(unittest.TestCase):
   })
 
   def test_init(self):
-    agency = entities.Entity(self.expect)
+    agency = entities.Entity(**self.expect)
   
   def test_get(self):
-    agency = entities.Entity(self.expect)
+    agency = entities.Entity(**self.expect)
     for key in self.expect.keys():
       assert agency.get(key) == self.expect.get(key)
       assert agency[key] == self.expect[key]
 
   def test_get_keyerror(self):
-    agency = entities.Entity(self.expect)    
+    agency = entities.Entity(**self.expect)    
     with self.assertRaises(KeyError):
       agency['asdf']
   
   def test_get_default(self):
-    agency = entities.Entity(self.expect)    
+    agency = entities.Entity(**self.expect)    
     assert agency.get('asdf','test') == 'test'
     
   def test_get_namedtuple(self):
     nt = collections.namedtuple('test', self.expect.keys())
-    agency = entities.Entity(nt(**self.expect))
+    agency = entities.Entity.from_row(nt(**self.expect))
     for key in self.expect.keys():
       assert agency.get(key) == self.expect.get(key)
       assert agency[key] == self.expect[key]
 
   def test_get_namedtuple_keyerror(self):
     nt = collections.namedtuple('test', self.expect.keys())
-    agency = entities.Entity(nt(**self.expect))
+    agency = entities.Entity.from_row(nt(**self.expect))
     with self.assertRaises(KeyError):
       agency['asdf']
 
   def test_name(self):
-    entity = entities.Entity(self.expect)
+    entity = entities.Entity(**self.expect)
     with self.assertRaises(NotImplementedError):
       entity.name()
 
   def test_id(self):
-    entity = entities.Entity(self.expect)
+    entity = entities.Entity(**self.expect)
     with self.assertRaises(NotImplementedError):
       entity.id()
 
   def test_point(self):
-    entity = entities.Entity(self.expect)
+    entity = entities.Entity(**self.expect)
     with self.assertRaises(NotImplementedError):
       entity.point()
 
   def test_bbox(self):
-    entity = entities.Entity(self.expect)
+    entity = entities.Entity(**self.expect)
     with self.assertRaises(NotImplementedError):
       entity.bbox()
 
   def test_geometry(self):
-    entity = entities.Entity(self.expect)
+    entity = entities.Entity(**self.expect)
     with self.assertRaises(NotImplementedError):
       entity.geometry()
 
   def test_from_json(self):
     with self.assertRaises(NotImplementedError):
-      entity = entities.Entity.from_json(self.expect)
+      entities.Entity.from_json(self.expect)
 
   def test_json(self):
-    entity = entities.Entity(self.expect)
+    entity = entities.Entity(**self.expect)
     with self.assertRaises(NotImplementedError):
       entity.json()
 
   # Relationships
   def test_pclink(self):
-    agency1 = entities.Entity(self.expect)    
-    agency2 = entities.Entity(self.expect)    
+    agency1 = entities.Entity(**self.expect)    
+    agency2 = entities.Entity(**self.expect)    
     agency1.pclink(agency1, agency2)
     assert agency2 in agency1.get_children()
     assert agency1 in agency2.get_parents()
 
   def test_add_child(self):
-    agency1 = entities.Entity(self.expect)    
-    agency2 = entities.Entity(self.expect)    
+    agency1 = entities.Entity(**self.expect)    
+    agency2 = entities.Entity(**self.expect)    
     agency1.add_child(agency2)
     assert agency2 in agency1.get_children()
     assert agency1 in agency2.get_parents()
 
   def test_add_parent(self):
-    agency1 = entities.Entity(self.expect)    
-    agency2 = entities.Entity(self.expect)    
+    agency1 = entities.Entity(**self.expect)    
+    agency2 = entities.Entity(**self.expect)    
     agency2.add_parent(agency1)
     assert agency2 in agency1.get_children()
     assert agency1 in agency2.get_parents()
 
   def test_get_parents(self):
     self.test_add_parent()
-    entity = entities.Entity(self.expect)    
+    entity = entities.Entity(**self.expect)    
     assert not entity.get_parents()
   
   def test_get_children(self):
     self.test_add_child()
-    entity = entities.Entity(self.expect)    
+    entity = entities.Entity(**self.expect)    
     assert not entity.get_children()
     
   def test__read_children(self):
-    entity = entities.Entity(self.expect)
+    entity = entities.Entity(**self.expect)
     assert not entity._read_children()
     
   def test__read_parents(self):
-    entity = entities.Entity(self.expect)
+    entity = entities.Entity(**self.expect)
     assert not entity._read_parents()
     
 class TestAgency(unittest.TestCase):
@@ -138,15 +138,15 @@ class TestAgency(unittest.TestCase):
   })
 
   def test_name(self):
-    agency = entities.Agency(self.expect)    
+    agency = entities.Agency(**self.expect)    
     assert agency.name() == self.expect['agency_name']
     
   def test_id(self):
-    agency = entities.Agency(self.expect)    
+    agency = entities.Agency(**self.expect)    
     assert agency.id() == self.expect['agency_id']
     
   def test_feedid(self):    
-    agency = entities.Agency(self.expect)    
+    agency = entities.Agency(**self.expect)    
     assert agency.feedid('f-test') == 'f-test-o-DTA'
 
   def test__read_parents(self):
@@ -253,16 +253,16 @@ class TestRoute(unittest.TestCase):
 
   def test_name(self):
     # Test name
-    entity = entities.Route(self.expect)    
+    entity = entities.Route(**self.expect)    
     assert entity.name() == self.expect['route_short_name']
     # Test fallback
     expect = copy.copy(self.expect)
     expect.pop('route_short_name')
-    entity = entities.Route(expect)    
+    entity = entities.Route(**expect)    
     assert entity.name() == self.expect['route_long_name']
     
   def test_id(self):
-    entity = entities.Route(self.expect)
+    entity = entities.Route(**self.expect)
     assert entity.id() == self.expect['route_id']
   
   # Requires preload
@@ -365,27 +365,27 @@ class TestStop(unittest.TestCase):
   }
     
   def test_id(self):
-    entity = entities.Stop(self.expect)
+    entity = entities.Stop(**self.expect)
     assert entity.id() == self.expect['stop_id']
 
   def test_name(self):
-    entity = entities.Stop(self.expect)    
+    entity = entities.Stop(**self.expect)    
     assert entity.name() == self.expect['stop_name']
 
   def test_point(self):
-    entity = entities.Stop(self.expect)    
+    entity = entities.Stop(**self.expect)    
     expect = (-117.133162, 36.425288)
     for i,j in zip(entity.point(), expect):
       self.assertAlmostEqual(i,j)
 
   def test_bbox(self):
-    entity = entities.Stop(self.expect)    
+    entity = entities.Stop(**self.expect)    
     expect = [-117.133162, 36.425288, -117.133162, 36.425288]
     for i,j in zip(entity.bbox(), expect):
       self.assertAlmostEqual(i,j)
 
   def test_json(self):
-    entity = entities.Stop(self.expect)    
+    entity = entities.Stop(**self.expect)    
     data = entity.json()
     assert data['name'] == entity.name()
     assert data['type'] == 'Feature'
@@ -395,7 +395,7 @@ class TestStop(unittest.TestCase):
     assert json.loads(json.dumps(data)) 
 
   def test_geometry(self):
-    entity = entities.Stop(self.expect)    
+    entity = entities.Stop(**self.expect)    
     expect = (-117.133162, 36.425288)
     geometry = entity.geometry()
     assert geometry['type'] == 'Point'

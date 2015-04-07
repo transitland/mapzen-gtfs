@@ -30,13 +30,13 @@ class Entity(object):
   """
   entity_type = None
 
-  def __init__(self, data, feed=None):
+  def __init__(self, **data):
     """Row data from DictReader, and reference to feed."""
     # The row data. 
     # This is a collections.namedtuple, and is read-only.
     self.data = data
     # Reference to GTFS Reader.
-    self.feed = feed
+    self.feed = None
     # Relationships (e.g. trips, stop_times, ...)
     self.children = None  
     self.parents = None
@@ -60,6 +60,9 @@ class Entity(object):
     except KeyError:
       return default
   
+  def set_feed(self, feed):
+    self.feed = feed
+  
   # Name methods.
   def name(self):
     """A reasonable name for the entity."""
@@ -79,7 +82,7 @@ class Entity(object):
 
   # Entity geometry.
   def point(self):
-    """Return a point geometry for this entity."""
+    """Return a point for this entity."""
     raise NotImplementedError  
     
   def bbox(self):
@@ -92,11 +95,18 @@ class Entity(object):
     
   # Load / Dump.
   @classmethod
+  def from_row(cls, data, feed=None):
+    entity = cls()
+    entity.data = data
+    entity.set_feed(feed)
+    return entity
+    
+  @classmethod
   def from_json(cls, data):
     raise NotImplementedError
   
   def json(self):
-    raise NotImplementedError  
+    raise NotImplementedError
 
   # Graph.
   def pclink(self, parent, child):

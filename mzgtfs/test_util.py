@@ -10,9 +10,9 @@ import entities
 
 class TestUtil(unittest.TestCase):
   testdata = [
-    entities.Agency(dict(agency_name='Foo', agency_id='1')),
-    entities.Agency(dict(agency_name='Bar', agency_id='2')),
-    entities.Agency(dict(agency_name='Baz', agency_id='2')),
+    entities.Agency(agency_name='Foo', agency_id='1'),
+    entities.Agency(agency_name='Bar', agency_id='2'),
+    entities.Agency(agency_name='Baz', agency_id='2'),
   ]
 
   def test_filtany_name(self):

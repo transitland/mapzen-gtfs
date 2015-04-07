@@ -33,7 +33,7 @@ class Feed(object):
     """Iteratively read data from a GTFS table. Returns namedtuples."""
     if self.debug:
       print "reading: %s.txt"%filename
-    factory = self.factories.get(filename) or self.factories.get(None)
+    cls = self.factories.get(filename) or self.factories.get(None)
     with self.zipfile.open('%s.txt'%filename) as f:
       data = unicodecsv.reader(f, encoding='utf-8-sig')
       header = data.next()
@@ -46,7 +46,7 @@ class Feed(object):
         # pad to length if necessary... :(
         if len(row) < headerlen:
           row += ['']*(headerlen-len(row))
-        yield factory(ent._make(row), feed=self)
+        yield cls.from_row(ent._make(row), self)
         
   def read(self, filename):
     """Read all the data from a GTFS table. Returns namedtuples."""
