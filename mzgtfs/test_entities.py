@@ -54,6 +54,17 @@ class TestEntity(unittest.TestCase):
     with self.assertRaises(KeyError):
       agency['asdf']
 
+  def test_setitem(self):
+    agency = entities.Entity(**self.expect)
+    agency['test'] = 'ok'
+    assert agency['test'] == 'ok'
+  
+  def test_setitem_ntconvert(self):
+    nt = collections.namedtuple('test', self.expect.keys())
+    agency = entities.Entity.from_row(nt(**self.expect))
+    agency['test'] = 'ok'
+    assert agency['test'] == 'ok'    
+
   def test_name(self):
     entity = entities.Entity(**self.expect)
     with self.assertRaises(NotImplementedError):

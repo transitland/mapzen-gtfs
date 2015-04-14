@@ -59,6 +59,12 @@ class Entity(object):
       return self[key]
     except KeyError:
       return default
+      
+  def __setitem__(self, key, value):
+    # Convert from namedtuple to dict if setting value.
+    if hasattr(self.data, '_asdict'):
+      self.data = self.data._asdict()
+    self.data[key] = value
   
   def set_feed(self, feed):
     self.feed = feed
