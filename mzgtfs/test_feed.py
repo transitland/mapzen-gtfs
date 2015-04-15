@@ -11,6 +11,15 @@ import util
 import feed
 import entities
 
+def test_outfile():
+  # Create a temporary filename.
+  # You'll have to unlink file when done.
+  # This of course is not secure against file creation problems.
+  outfile = tempfile.NamedTemporaryFile()
+  name = outfile.name
+  outfile.close()
+  return name
+
 class TestFeed(unittest.TestCase):
   """Test Feed Reader.
   
@@ -83,11 +92,10 @@ class TestFeed(unittest.TestCase):
   def test_write(self):
     f = feed.Feed()
     data = [entities.Agency(**self.agency_expect)]
-    outfile = tempfile.NamedTemporaryFile(delete=False)
-    outfile.close()
-    f.write(outfile.name, data, sortkey='agency_id')
+    outfile = test_outfile()
+    f.write(outfile, data, sortkey='agency_id')
     # Check the output...
-    with open(outfile.name) as csvfile:
+    with open(outfile) as csvfile:
       reader = csv.reader(csvfile)
       headers = reader.next()
       assert len(self.agency_expect.keys()) == len(headers)
@@ -101,14 +109,22 @@ class TestFeed(unittest.TestCase):
       for k,v in zip(headers, row):
         assert self.agency_expect[k] == v
     # Delete temp file
-    os.unlink(outfile.name)
+    os.unlink(outfile)
+
+  def test_write_exists(self):
+    f = feed.Feed()
+    data = [entities.Agency(**self.agency_expect)]
+    outfile = test_outfile()
+    f.write(outfile, data, sortkey='agency_id')
+    with self.assertRaises(IOError):
+      f.write(outfile, data, sortkey='agency_id')
+    os.unlink(outfile)
 
   def test_make_zip(self):
     f = feed.Feed()
-    outfile = tempfile.NamedTemporaryFile(delete=False)
-    outfile.close()
+    outfile = test_outfile()
     f.make_zip(
-      outfile.name,
+      outfile,
       path=os.path.dirname(util.example_feed()),
       clone=util.example_feed()
     )
@@ -125,24 +141,38 @@ class TestFeed(unittest.TestCase):
       'trips.txt', 
       'stops.txt'
     ]
-    zf = zipfile.ZipFile(outfile.name)
+    zf = zipfile.ZipFile(outfile)
     for i,j in zip(sorted(zf.namelist()), sorted(expect)):
       assert i == j
     zf.close()
-    os.unlink(outfile.name)
+    os.unlink(outfile)
 
+  def test_make_zip_exists(self):
+    f = feed.Feed()
+    outfile = test_outfile()
+    f.make_zip(
+      outfile,
+      path=os.path.dirname(util.example_feed()),
+      clone=util.example_feed()
+    )
+    with self.assertRaises(IOError):
+      f.make_zip(
+        outfile,
+        path=os.path.dirname(util.example_feed()),
+        clone=util.example_feed()
+      )
+    os.unlink(outfile)
+    
   def test_make_zip_multiplefiles(self):
     f = feed.Feed()
-    outfile = tempfile.NamedTemporaryFile(delete=False)
-    outfile.close()
+    outfile = test_outfile()
     with self.assertRaises(ValueError):
       f.make_zip(
-        outfile.name,
+        outfile,
         files=['stops.txt'],
         path=os.path.dirname(util.example_feed()),
         clone=util.example_feed()
       )
-    os.unlink(outfile.name)
 
   def test_cache(self):
     f = feed.Feed(util.example_feed())

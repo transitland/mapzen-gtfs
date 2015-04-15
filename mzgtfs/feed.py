@@ -86,6 +86,8 @@ class Feed(object):
     is difficult to achieve with Zip archives. Use make_zip() to create a new
     GTFS Zip archive.
     """    
+    if os.path.exists(filename):
+      raise IOError('File exists: %s'%filename)
     # Make sure we have all the entities loaded.
     if sortkey:
       entities = sorted(entities, key=lambda x:x[sortkey])
@@ -109,6 +111,8 @@ class Feed(object):
       files - A list of files
       clone - Copy any files from a zip archive not specified above
      """
+    if os.path.exists(filename):
+      raise IOError('File exists: %s'%filename)     
     files = set(files or [])
     if os.path.isdir(path):
       files |= set(glob.glob(os.path.join(path, '*.txt')))
