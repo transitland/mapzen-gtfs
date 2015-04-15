@@ -98,7 +98,7 @@ class Feed(object):
       columns = sorted(columns)      
     # Write the csv file
     with open(filename, 'wb') as f:
-      writer = unicodecsv.writer(f, encoding='utf-8-sig')
+      writer = unicodecsv.writer(f) # , encoding='utf-8-sig'
       writer.writerow(columns)
       for entity in entities:
         writer.writerow([entity.get(column) for column in columns])
