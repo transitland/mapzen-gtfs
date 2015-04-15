@@ -142,7 +142,7 @@ class TestFeed(unittest.TestCase):
         path=os.path.dirname(util.example_feed()),
         clone=util.example_feed()
       )
-    os.unlink(outfile)
+    os.unlink(outfile.name)
 
   def test_cache(self):
     f = feed.Feed(util.example_feed())
