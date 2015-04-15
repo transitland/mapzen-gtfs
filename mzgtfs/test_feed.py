@@ -3,6 +3,9 @@ import unittest
 import os
 import json
 import inspect
+import tempfile
+import csv
+import zipfile
 
 import util
 import feed
@@ -52,6 +55,24 @@ class TestFeed(unittest.TestCase):
     # check cache
     assert 'stops' in f.cache
   
+  def test_read_path(self):
+    # Test overlay
+    f = feed.Feed(
+      util.example_feed(), 
+      path=os.path.dirname(util.example_feed())
+    )
+    assert f.stop('TEST')
+    with self.assertRaises(Exception):
+      f.stop('FUR_CREEK_RES')
+  
+  def test_read_missing(self):
+    f = feed.Feed(
+      util.example_feed(), 
+      path=os.path.dirname(util.example_feed())
+    )
+    with self.assertRaises(Exception):
+      f.read('missing')
+  
   def test_iterread(self):
     # Test generator read
     f = feed.Feed(util.example_feed())
@@ -59,9 +80,69 @@ class TestFeed(unittest.TestCase):
     assert inspect.isgenerator(data)
     assert len(list(data)) == 9
 
-  def test_debug(self):
-    f = feed.Feed(util.example_feed(), debug=True)
-    data = f.read('stops')
+  def test_write(self):
+    f = feed.Feed()
+    data = [entities.Agency(**self.agency_expect)]
+    outfile = tempfile.NamedTemporaryFile(delete=False)
+    outfile.close()
+    f.write(outfile.name, data, sortkey='agency_id')
+    # Check the output...
+    with open(outfile.name) as csvfile:
+      reader = csv.reader(csvfile)
+      headers = reader.next()
+      assert len(self.agency_expect.keys()) == len(headers)
+      for i in headers:
+        assert i in self.agency_expect
+      rows = []
+      for i in reader:
+        rows.append(i)
+      assert len(rows) == 1
+      row = rows[0]
+      for k,v in zip(headers, row):
+        assert self.agency_expect[k] == v
+    # Delete temp file
+    os.unlink(outfile.name)
+
+  def test_make_zip(self):
+    f = feed.Feed()
+    outfile = tempfile.NamedTemporaryFile(delete=False)
+    outfile.close()
+    f.make_zip(
+      outfile.name,
+      path=os.path.dirname(util.example_feed()),
+      clone=util.example_feed()
+    )
+    expect = [
+      'agency.txt', 
+      'calendar.txt', 
+      'calendar_dates.txt', 
+      'fare_attributes.txt', 
+      'fare_rules.txt', 
+      'frequencies.txt', 
+      'routes.txt', 
+      'shapes.txt', 
+      'stop_times.txt', 
+      'trips.txt', 
+      'stops.txt'
+    ]
+    zf = zipfile.ZipFile(outfile.name)
+    for i,j in zip(sorted(zf.namelist()), sorted(expect)):
+      assert i == j
+    zf.close()
+    os.unlink(outfile.name)
+
+  def test_make_zip_multiplefiles(self):
+    f = feed.Feed()
+    outfile = tempfile.NamedTemporaryFile(delete=False)
+    outfile.close()
+    with self.assertRaises(ValueError):
+      f.make_zip(
+        outfile.name,
+        files=['stops.txt'],
+        path=os.path.dirname(util.example_feed()),
+        clone=util.example_feed()
+      )
+    os.unlink(outfile)
 
   def test_cache(self):
     f = feed.Feed(util.example_feed())
