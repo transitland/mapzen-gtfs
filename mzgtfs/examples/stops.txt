@@ -1,0 +1,2 @@
+stop_id,stop_name,stop_desc,stop_lat,stop_lon,zone_id,stop_url
+TEST,Test stop,,36.425288,-117.133162,,
