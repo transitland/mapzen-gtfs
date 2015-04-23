@@ -80,7 +80,7 @@ class Entity(object):
   
   def feedid(self, feedid):
     """A canonical Onestop-style ID for this entity."""
-    return '%s-%s-%s'%(
+    return 'gtfs://%s/%s/%s'%(
       feedid,
       self.entity_type,
       self.id()
@@ -391,7 +391,11 @@ class Stop(Entity):
     return self.get('stop_name')
     
   def point(self):
-    return float(self.get('stop_lon')), float(self.get('stop_lat'))
+    try:
+      return float(self.get('stop_lon')), float(self.get('stop_lat'))
+    except ValueError, e:
+      print "Warning: no stop_lon, stop_lat:", self.name(), self.id()
+      return None
 
   def bbox(self):
     c = self.point()
