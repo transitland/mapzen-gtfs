@@ -111,10 +111,10 @@ class Feed(object):
       files - A list of files
       clone - Copy any files from a zip archive not specified above
      """
-    if os.path.exists(filename):
+    if filename and os.path.exists(filename):
       raise IOError('File exists: %s'%filename)     
     files = set(files or [])
-    if os.path.isdir(path):
+    if path and os.path.isdir(path):
       files |= set(glob.glob(os.path.join(path, '*.txt')))
     # Check unique
     arcnames = set([os.path.basename(f) for f in files])

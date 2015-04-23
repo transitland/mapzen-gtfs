@@ -158,7 +158,7 @@ class TestAgency(unittest.TestCase):
     
   def test_feedid(self):    
     agency = entities.Agency(**self.expect)    
-    assert agency.feedid('f-test') == 'f-test-o-DTA'
+    assert agency.feedid('test') == 'gtfs://test/o/DTA'
 
   def test__read_parents(self):
     # empty set
