@@ -297,16 +297,22 @@ class Route(Entity):
     }
 
   def geometry(self):
-    # Return a line for most popular stop pattern in each direction_id.
+    # Return a line for most popular shape_id or stop pattern 
+    #   in each direction_id.
     d0 = collections.defaultdict(int)
     d1 = collections.defaultdict(int)
+    # Grab the shapes.
+    shapes = self.feed.shapes()
     for trip in self.trips():
-      seq = tuple(trip.stop_sequence())
-      if trip.get('direction_id') == '1':
+      if trip.get('shape_id'):
+        seq = tuple(shapes[trip['shape_id']].points())
+      else:
+        seq = tuple(i.point() for i in trip.stop_sequence())
+      if int(trip.get('direction_id') or 0):
         d1[seq] += 1
       else:
         d0[seq] += 1
-    # Sort        
+    # Sort to find the most popular shape.
     route0 = []
     if d0:
       route0 = sorted(d0.items(), key=lambda x:x[1])[-1][0]
@@ -315,10 +321,7 @@ class Route(Entity):
       route1 = sorted(d1.items(), key=lambda x:x[1])[-1][0]
     return {
       'type':'MultiLineString',
-      'coordinates': [
-        [stop.point() for stop in route0],
-        [stop.point() for stop in route1],
-      ]
+      'coordinates': [route0, route1]
     }
   
   # Graph.
@@ -423,3 +426,50 @@ class Stop(Entity):
       for trip in stop_time.parents:
         serves |= trip.parents
     return serves
+
+class ShapeRow(Entity):
+  """A row in shapes.txt"""
+  
+  def id(self):
+    return self.get('shape_id')
+
+  def name(self):
+    return self.get('shape_id')  
+  
+  def point(self):
+    try:
+      return float(self.get('shape_pt_lon')), float(self.get('shape_pt_lat'))
+    except ValueError, e:
+      print "Warning: no shape_pt_lon, shape_pt_lat:", self.name(), self.id()
+      return None
+
+  def geometry(self):
+    return {
+      "type": 'Point',
+      "coordinates": self.point(),
+    }
+
+class ShapeLine(Entity):
+  """A collection of ShapeRows."""
+  def rows(self):
+    return sorted(
+      self.children, 
+      key=lambda x:int(x.get('shape_pt_sequence',0))
+    )
+
+  def points(self):
+    return [i.point() for i in self.rows()]
+
+  def geometry(self):
+    return {
+      'type':'MultiLineString',
+      'coordinates': [self.points()]
+    }
+  
+  def json(self):
+    return {
+      'type': 'Feature',
+      'properties': self.data,
+      'geometry': self.geometry()
+    }
+  

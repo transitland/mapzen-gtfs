@@ -7,7 +7,11 @@ import os
 import tempfile
 import glob
 
-import unicodecsv
+import csv
+try:
+  import unicodecsv
+except ImportError:
+  unicodecsv = None
 
 import util
 import entities
@@ -22,6 +26,7 @@ class Feed(object):
     'trips': entities.Trip,
     'stops': entities.Stop,
     'stop_times': entities.StopTime,
+    'shapes': entities.ShapeRow,
     None: entities.Entity
   }
 
@@ -32,14 +37,14 @@ class Feed(object):
     self.path = path
     self.debug = debug
 
-  def iterread(self, filename):
+  def iterread(self, table):
     """Iteratively read data from a GTFS table. Returns namedtuples."""
     if self.debug: # pragma: no cover
-      print "reading: %s.txt"%filename
+      print "reading: %s.txt"%table
     # Entity class
-    cls = self.factories.get(filename) or self.factories.get(None)
+    cls = self.factories.get(table) or self.factories.get(None)
     # Archive name
-    arcname = '%s.txt'%filename
+    arcname = '%s.txt'%table
     f = None
     zf = None
     if self.path and os.path.exists(os.path.join(self.path, arcname)):
@@ -54,7 +59,10 @@ class Feed(object):
     if not f:
       raise KeyError("File not found in path or zip file: %s"%arcname)
     # Can't use context manager, since file can come from multiple sources.
-    data = unicodecsv.reader(f, encoding='utf-8-sig')
+    if unicodecsv:
+      data = unicodecsv.reader(f, encoding='utf-8-sig')
+    else:
+      data = csv.reader(f)
     header = data.next()
     headerlen = len(header)
     ent = collections.namedtuple(
@@ -71,12 +79,12 @@ class Feed(object):
     if zf:
       zf.close()
         
-  def read(self, filename):
+  def read(self, table):
     """Read all the data from a GTFS table. Returns namedtuples."""
-    if filename in self.cache:
-      return self.cache[filename]
-    data = list(self.iterread(filename))
-    self.cache[filename] = data
+    if table in self.cache:
+      return self.cache[table]
+    data = list(self.iterread(table))
+    self.cache[table] = data
     return data
 
   def write(self, filename, entities, sortkey=None, columns=None):
@@ -164,3 +172,15 @@ class Feed(object):
   def stop(self, id):
     """Return a single stop by ID."""
     return util.filtfirst(self.stops(), id=id)
+  
+  def shapes(self):
+    """Return the route shapes as a dictionary."""
+    # Todo: Cache?
+    # Group together by shape_id
+    if self.debug: # pragma: no cover
+      print "Generating shapes..."
+    ret = collections.defaultdict(entities.ShapeLine)
+    for point in self.read('shapes'):
+      ret[point['shape_id']].add_child(point)
+    return ret
+    
