@@ -25,6 +25,8 @@ def filtfirst(entities, **kw):
     raise ValueError('No result')
   return ret[0]
 
+##### Utilities for tests #####
+
 def example_feed(feed='sample-feed.zip'):
   return os.path.join(
     os.path.dirname(__file__), 
@@ -32,3 +34,10 @@ def example_feed(feed='sample-feed.zip'):
     feed
     )
   
+def preload_agency(**kw):
+  import feed  
+  agency_id = kw.pop('agency_id', 'DTA')
+  f = feed.Feed(example_feed(**kw))
+  agency = f.agency(agency_id)
+  agency.preload()
+  return agency
