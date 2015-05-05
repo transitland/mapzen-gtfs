@@ -10,6 +10,7 @@ Classes:
 
 """
 import collections
+import weakref
 
 import geom
 import util
@@ -36,12 +37,18 @@ class Entity(object):
     # This is a collections.namedtuple, and is read-only.
     self.data = data
     # Reference to GTFS Reader.
-    self.feed = None
+    self._feed = None
     # Relationships (e.g. trips, stop_times, ...)
-    self.children = None  
-    self.parents = None
+    self._children = None  
+    self._parents = None
   
   # GTFS row data.
+  def __len__(self):
+    return len(self.data)
+  
+  def __contains__(self, key):
+    return key in self.data
+  
   def __getitem__(self, key):
     """Proxy to row data."""
     # Work with either a dict or a namedtuple.
@@ -60,14 +67,20 @@ class Entity(object):
     except KeyError:
       return default
       
-  def __setitem__(self, key, value):
+  def set(self, key, value):
     # Convert from namedtuple to dict if setting value.
     if hasattr(self.data, '_asdict'):
       self.data = self.data._asdict()
     self.data[key] = value
   
   def set_feed(self, feed):
-    self.feed = feed
+    self._feed = feed
+  
+  def keys(self):
+    return self.data.keys()
+    
+  def items(self):
+    return self.data.items()
   
   # Name methods.
   def name(self):
@@ -117,24 +130,24 @@ class Entity(object):
   # Graph.
   def pclink(self, parent, child):
     """Create a parent-child relationship."""
-    if parent.children is None:
-      parent.children = set()
-    if child.parents is None:
-      child.parents = set()
-    parent.children.add(child)
-    child.parents.add(parent)
+    if parent._children is None:
+      parent._children = set()
+    if child._parents is None:
+      child._parents = set()
+    parent._children.add(child)
+    child._parents.add(parent)
     
   # ... children
   def add_child(self, child):
     """Add a child relationship."""
     self.pclink(self, child)
     
-  def get_children(self):
+  def children(self):
     """Read and cache children."""
-    if self.children is not None:
-      return self.children
-    self.children = self._read_children()
-    return self.children
+    if self._children is not None:
+      return self._children
+    self._children = self._read_children()
+    return self._children
     
   def _read_children(self):
     """Read children from GTFS feed."""
@@ -145,12 +158,12 @@ class Entity(object):
     """Add a parent relationship."""
     self.pclink(parent, self)
     
-  def get_parents(self):
+  def parents(self):
     """Read and cache parents."""
-    if self.parents is not None:
-      return self.parents
-    self.parents = self._read_parents()
-    return self.parents
+    if self._parents is not None:
+      return self._parents
+    self._parents = self._read_parents()
+    return self._parents
     
   def _read_parents(self):
     """Read the parents from the GTFS feed."""
@@ -205,22 +218,22 @@ class Agency(Entity):
     for route in self.routes():
       routes_by_id[route.id()] = route
       # Set children & parents directly.
-      route.children = set()
+      route._children = set()
       route.add_parent(self)
     # Second, load all trips.
     trips_by_id = {}
-    for trip in self.feed.iterread('trips'):
+    for trip in self._feed.iterread('trips'):
       if trip['route_id'] in routes_by_id:
         trips_by_id[trip.id()] = trip
         # set directly
-        trip.children = set()
+        trip._children = set()
         trip.add_parent(routes_by_id[trip['route_id']])
     # Third, load all stops...
     stops_by_id = {}
-    for stop in self.feed.iterread('stops'):
+    for stop in self._feed.iterread('stops'):
       stops_by_id[stop.id()] = stop
     # Finally, load stop_times.
-    for stop_time in self.feed.iterread('stop_times'):
+    for stop_time in self._feed.iterread('stop_times'):
       if stop_time['trip_id'] in trips_by_id:
         # set directly
         stop_time.add_child(stops_by_id[stop_time['stop_id']])
@@ -230,16 +243,16 @@ class Agency(Entity):
   def _read_children(self):
     # Are we the only agency in the feed?
     check = lambda r:True
-    if len(self.feed.agencies()) > 1:
+    if len(self._feed.agencies()) > 1:
       check = lambda r:(r.get('agency_id') == self.id())
     # Get the routes...    
     return set(
-      filter(check, self.feed.iterread('routes'))
+      filter(check, self._feed.iterread('routes'))
     )
   
   def routes(self):
     """Return all routes for this agency."""
-    return set(self.get_children()) # copy
+    return set(self.children()) # copy
   
   def route(self, id):
     """Return a single route by ID."""
@@ -303,7 +316,7 @@ class Route(Entity):
     d1 = collections.defaultdict(int)
     # Grab the shapes.
     try:
-      shapes = self.feed.shapes()
+      shapes = self._feed.shapes()
     except KeyError:
       shapes = {}      
     for trip in self.trips():
@@ -332,13 +345,13 @@ class Route(Entity):
     """Children: Trips"""
     return set([
       trip for trip
-      in self.feed.iterread('trips')
+      in self._feed.iterread('trips')
       if trip.get('route_id') == self.id()
     ])
 
   def trips(self):
     """Return trips for this route."""
-    return set(self.get_children()) # copy
+    return set(self.children()) # copy
 
   def stops(self):
     """Return stops served by this route."""
@@ -360,12 +373,12 @@ class Trip(Entity):
     """Return stop_times for this trip."""
     return set([
       stop_time for stop_time
-      in self.feed.iterread('stop_times')
+      in self._feed.iterread('stop_times')
       if stop_time.get('trip_id') == self.id()
     ])
     
   def stop_times(self):
-    return set(self.get_children()) # copy
+    return set(self.children()) # copy
 
   # Trip methods.
   def stop_sequence(self):
@@ -380,11 +393,11 @@ class StopTime(Entity):
   
   def point(self):
     # Ugly hack.
-    return list(self.children)[0].point()
+    return list(self._children)[0].point()
 
   # Graph
   def stops(self):
-    return set(self.get_children())
+    return set(self.children())
     
 class Stop(Entity):  
   """GTFS Stop Entity."""
@@ -425,9 +438,9 @@ class Stop(Entity):
   # Stop methods.
   def routes(self):
     serves = set()
-    for stop_time in self.parents:
-      for trip in stop_time.parents:
-        serves |= trip.parents
+    for stop_time in self._parents:
+      for trip in stop_time._parents:
+        serves |= trip._parents
     return serves
 
 class ShapeRow(Entity):
@@ -456,7 +469,7 @@ class ShapeLine(Entity):
   """A collection of ShapeRows."""
   def rows(self):
     return sorted(
-      self.children, 
+      self._children, 
       key=lambda x:int(x.get('shape_pt_sequence',0))
     )
 

@@ -56,13 +56,13 @@ class TestEntity(unittest.TestCase):
 
   def test_setitem(self):
     agency = entities.Entity(**self.expect)
-    agency['test'] = 'ok'
+    agency.set('test', 'ok')
     assert agency['test'] == 'ok'
   
   def test_setitem_ntconvert(self):
     nt = collections.namedtuple('test', self.expect.keys())
     agency = entities.Entity.from_row(nt(**self.expect))
-    agency['test'] = 'ok'
+    agency.set('test', 'ok')
     assert agency['test'] == 'ok'    
 
   def test_name(self):
@@ -104,32 +104,32 @@ class TestEntity(unittest.TestCase):
     agency1 = entities.Entity(**self.expect)    
     agency2 = entities.Entity(**self.expect)    
     agency1.pclink(agency1, agency2)
-    assert agency2 in agency1.get_children()
-    assert agency1 in agency2.get_parents()
+    assert agency2 in agency1.children()
+    assert agency1 in agency2.parents()
 
   def test_add_child(self):
     agency1 = entities.Entity(**self.expect)    
     agency2 = entities.Entity(**self.expect)    
     agency1.add_child(agency2)
-    assert agency2 in agency1.get_children()
-    assert agency1 in agency2.get_parents()
+    assert agency2 in agency1.children()
+    assert agency1 in agency2.parents()
 
   def test_add_parent(self):
     agency1 = entities.Entity(**self.expect)    
     agency2 = entities.Entity(**self.expect)    
     agency2.add_parent(agency1)
-    assert agency2 in agency1.get_children()
-    assert agency1 in agency2.get_parents()
+    assert agency2 in agency1.children()
+    assert agency1 in agency2.parents()
 
-  def test_get_parents(self):
+  def test_parents(self):
     self.test_add_parent()
     entity = entities.Entity(**self.expect)    
-    assert not entity.get_parents()
+    assert not entity.parents()
   
-  def test_get_children(self):
+  def test_children(self):
     self.test_add_child()
     entity = entities.Entity(**self.expect)    
-    assert not entity.get_children()
+    assert not entity.children()
     
   def test__read_children(self):
     entity = entities.Entity(**self.expect)

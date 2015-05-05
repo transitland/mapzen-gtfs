@@ -196,7 +196,7 @@ class TestFeed(unittest.TestCase):
     data = f.read('stop_times')
     # Check that all 9 elements are present.
     for entity in f.read('stop_times'):
-      assert len(entity.data) == 9
+      assert len(entity) == 9
 
   def test_agencies(self):
     f = feed.Feed(util.example_feed())

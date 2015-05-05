@@ -102,7 +102,7 @@ class Feed(object):
     if not columns:
       columns = set()
       for entity in entities:
-        columns |= set(entity.data.keys())
+        columns |= set(entity.keys())
       columns = sorted(columns)      
     # Write the csv file
     with open(filename, 'wb') as f:
