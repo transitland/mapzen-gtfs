@@ -302,9 +302,12 @@ class Route(Entity):
     d0 = collections.defaultdict(int)
     d1 = collections.defaultdict(int)
     # Grab the shapes.
-    shapes = self.feed.shapes()
+    try:
+      shapes = self.feed.shapes()
+    except KeyError:
+      shapes = {}      
     for trip in self.trips():
-      if trip.get('shape_id'):
+      if trip.get('shape_id') and trip.get('shape_id') in shapes:
         seq = tuple(shapes[trip['shape_id']].points())
       else:
         seq = tuple(i.point() for i in trip.stop_sequence())
