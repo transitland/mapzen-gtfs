@@ -91,3 +91,28 @@ class Route(entity.Entity):
       for stop_time in trip.stop_times():
         serves |= stop_time.stops()
     return serves
+
+  ##### Validation #####
+  def validate(self):
+    # Required
+    assert self.get('route_id')
+    assert self.get('route_short_name') or self.get('route_long_name')
+    assert int(self.get('route_type')) in range(0,8)
+    assert self.vehicle() # check as well
+    # Optional
+    if self.get('agency_id'):
+      # TODO: check parent agency
+      pass
+    if self.get('route_desc'):
+      pass
+    if self.get('route_url'):
+      assert self.get('route_url').startswith('http')
+    if self.get('route_color'):
+      color = self.get('route_color').lower()
+      for j in [color[i:i+2] for i in range(0,5,2)]:
+        assert 0 <= int(j,16) <= 255
+    if self.get('route_text_color'):
+      color = self.get('route_color').lower()
+      for j in [color[i:i+2] for i in range(0,5,2)]:
+        assert 0 <= int(j,16) <= 255
+      

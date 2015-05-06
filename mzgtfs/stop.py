@@ -44,3 +44,35 @@ class Stop(entity.Entity):
       for trip in stop_time._parents:
         serves |= trip._parents
     return serves
+
+  ##### Validation #####
+  def validate(self):
+    # Required
+    assert self.get('stop_id')
+    assert self.get('stop_name')
+    assert self.get('stop_lat')
+    assert self.get('stop_lon')
+    assert self.point() # check as float
+    assert -180 <= self.point()[0] <= 180
+    assert -90 <= self.point()[1] <= 90 
+    # Optional
+    if self.get('stop_code'):
+      pass
+    if self.get('stop_desc'):
+      # TODO: if stop_desc = stop_name, warn.
+      pass
+    if self.get('zone_id'):
+      # TODO: If zone_id and station, warn.
+      pass
+    if self.get('stop_url'):
+      assert self.get('stop_url').startswith('http')
+    if self.get('location_type'):
+      assert int(self.get('location_type')) in [0,1]
+    if self.get('parent_station'):
+      assert not self.get('zone_id')
+      assert self.get('location_type') != '1'
+    if self.get('stop_timezone'):
+      assert pytz.timezone(self.get('stop_timezone'))
+    if self.get('wheelchair_boarding'):
+      assert int(self.get('wheelchair_boarding')) in [0,1,2]
+      

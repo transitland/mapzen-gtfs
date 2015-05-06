@@ -27,3 +27,25 @@ class Trip(entity.Entity):
       self.stop_times(), 
       key=lambda x:int(x.get('stop_sequence'))
     )
+    
+  ##### Validation #####
+  def validate(self):
+    # Required
+    assert self.get('route_id')
+    assert self.get('service_id')
+    assert self.get('trip_id')
+    # Optional
+    if self.get('trip_headsign'):
+      pass
+    if self.get('trip_short_name'):
+      pass
+    if self.get('direction_id'):
+      assert int(self.get('direction_id')) in [0,1]
+    if self.get('block_id'):
+      pass
+    if self.get('shape_id'):
+      pass
+    if self.get('wheelchair_accessible'):
+      assert int(self.get('wheelchair_accessible')) in [0,1,2]
+    if self.get('bikes_allowed'):
+      assert int(self.get('bikes_allowed')) in [0,1,2]

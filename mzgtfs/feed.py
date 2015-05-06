@@ -191,3 +191,50 @@ class Feed(object):
       min(i.start() for i in data),
       max(i.end() for i in data)
     ]
+
+  ##### Validation #####
+  
+  def validate(self):
+    # required
+    required = [
+      'agency', 
+      'stops', 
+      'routes', 
+      'trips',
+      'stop_times',
+      'calendar'
+    ]
+    for f in required:
+      data = self.read(f)
+      for i in data:
+        i.validate()
+    
+    # optional
+    optional = [
+      'calendar_dates',
+      'fare_attributes',
+      'fare_rules',
+      'shapes',
+      'frequencies',
+      'transfers',
+      'feed_info'
+    ]
+    for f in optional:
+      data = []
+      try:
+        data = self.read(f)
+      except KeyError:
+        pass
+      for i in data:
+        i.validate()
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    

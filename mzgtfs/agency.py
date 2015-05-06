@@ -1,7 +1,10 @@
 """GTFS Agency entity."""
+import pytz
+
 import entity
 import geom
 import util
+import iso639
 
 class Agency(entity.Entity):
   """GTFS Agency entity."""
@@ -133,3 +136,19 @@ class Agency(entity.Entity):
       stop_times |= trip.stop_times()
     return stop_times
     
+  ##### Validation #####
+    
+  def validate(self):
+    # Required
+    assert self.get('agency_name')
+    assert self.get('agency_url').startswith('http')
+    assert pytz.timezone(self.get('agency_timezone'))
+    # Optional
+    if self.get('agency_id'):
+      pass
+    if self.get('agency_phone'):
+      pass
+    if self.get('agency_lang'):
+      assert iso639.get_language(self.get('agency_lang'))
+    if self.get('agency_fare_url'):
+      assert self.get('agency_fare_url').startswith('http')

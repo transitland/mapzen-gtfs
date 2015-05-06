@@ -151,3 +151,9 @@ class Entity(object):
   def _read_parents(self):
     """Read the parents from the GTFS feed."""
     return set()
+    
+  ##### Validation #####
+  
+  def validate(self):
+    return True  
+    
