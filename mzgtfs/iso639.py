@@ -5,7 +5,7 @@ From:
 https://gist.github.com/alexex/4073388
 """
 
-LANGUAGES = [
+LANGUAGES = dict((
     ('aa', 'Afar'),
     ('ab', 'Abkhazian'),
     ('af', 'Afrikaans'),
@@ -210,7 +210,7 @@ LANGUAGES = [
     ('za', 'Zhuang; Chuang'),
     ('zh', 'Chinese'),
     ('zu', 'Zulu')
-]
+))
 
 def get_language(code):
   return LANGUAGES[code]
