@@ -73,6 +73,18 @@ class Agency(entity.Entity):
         stop_time.add_child(stops_by_id[stop_time['stop_id']])
         stop_time.add_parent(trips_by_id[stop_time['trip_id']])
   
+  def dates(self):
+    found = set(trip.get('service_id') for trip in self.trips())
+    dates = [
+      date 
+      for date in self._feed.read('calendar') 
+      if date.get('service_id') in found
+    ]
+    return [
+      min(date.start() for date in dates),
+      max(date.end() for date in dates)
+    ]
+  
   # Graph.
   def _read_children(self):
     # Are we the only agency in the feed?

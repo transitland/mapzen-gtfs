@@ -57,6 +57,20 @@ class Route(entity.Entity):
       'coordinates': [route0, route1]
     }
   
+  def vehicle(self):
+    return {
+      '0': 'tram',
+      '1': 'metro',
+      '2': 'rail',
+      '3': 'bus',
+      '4': 'ferry',
+      '5': 'cablecar',
+      '6': 'gondola',
+      '7': 'funicular',
+      None: None,
+      '': None
+    }[self.get('route_type')]
+  
   # Graph.
   def _read_children(self):
     """Children: Trips"""
