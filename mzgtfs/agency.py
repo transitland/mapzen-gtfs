@@ -5,6 +5,7 @@ import entity
 import geom
 import util
 import iso639
+import validation
 
 class Agency(entity.Entity):
   """GTFS Agency entity."""
@@ -138,17 +139,27 @@ class Agency(entity.Entity):
     
   ##### Validation #####
     
-  def validate(self):
+  def validate(self, validator=None):
+    validator = validation.make_validator(validator)
     # Required
-    assert self.get('agency_name')
-    assert self.get('agency_url').startswith('http')
-    assert pytz.timezone(self.get('agency_timezone'))
+    with validator(self): 
+      assert self.get('agency_name'), "Required: agency_name"
+    with validator(self): 
+      assert self.get('agency_url'), "Required: agency_url"
+    with validator(self):
+      assert self.get('agency_url').startswith('http'), "agency_url must start with http(s):// scheme."
+    with validator(self):
+      assert pytz.timezone(self.get('agency_timezone')), "Required: agency_timezone"
     # Optional
-    if self.get('agency_id'):
-      pass
-    if self.get('agency_phone'):
-      pass
-    if self.get('agency_lang'):
-      assert iso639.get_language(self.get('agency_lang'))
-    if self.get('agency_fare_url'):
-      assert self.get('agency_fare_url').startswith('http')
+    with validator(self): 
+      if self.get('agency_lang'):
+        assert iso639.get_language(self.get('agency_lang')), "Unknown language: %s"%self.get('agency_lang')
+    with validator(self): 
+      if self.get('agency_fare_url'):
+        assert self.get('agency_fare_url').startswith('http'), "agency_fare_url must start with http(s):// scheme."
+    with validator(self):
+      if self.get('agency_id'): 
+        pass
+    with validator(self):
+      if self.get('agency_phone'):
+        pass

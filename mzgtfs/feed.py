@@ -15,6 +15,7 @@ except ImportError:
 
 import util
 import entities
+import validation
 
 class Feed(object):
   """Read a GTFS feed."""
@@ -194,7 +195,8 @@ class Feed(object):
 
   ##### Validation #####
   
-  def validate(self):
+  def validate(self, validator=None):
+    validator = validation.make_validator(validator)
     # required
     required = [
       'agency', 
@@ -207,8 +209,7 @@ class Feed(object):
     for f in required:
       data = self.read(f)
       for i in data:
-        i.validate()
-    
+        i.validate(validator=validator)    
     # optional
     optional = [
       'calendar_dates',
@@ -226,15 +227,4 @@ class Feed(object):
       except KeyError:
         pass
       for i in data:
-        i.validate()
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+        i.validate(validator=validator)

@@ -1,5 +1,7 @@
 """Base entity."""
 
+import validation
+
 class Entity(object):
   """A GTFS Entity.
   
@@ -154,6 +156,6 @@ class Entity(object):
     
   ##### Validation #####
   
-  def validate(self):
-    return True  
+  def validate(self, validator=None):
+    validator = validation.make_validator(validator)
     

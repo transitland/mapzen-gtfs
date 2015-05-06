@@ -3,6 +3,7 @@ import collections
 
 import entity
 import geom
+import validation
 
 class Route(entity.Entity):
   """GTFS Route entity."""
@@ -93,26 +94,33 @@ class Route(entity.Entity):
     return serves
 
   ##### Validation #####
-  def validate(self):
+  def validate(self, validator=None):
+    validator = validation.make_validator(validator)
     # Required
-    assert self.get('route_id')
-    assert self.get('route_short_name') or self.get('route_long_name')
-    assert int(self.get('route_type')) in range(0,8)
-    assert self.vehicle() # check as well
+    with validator(self): 
+      assert self.get('route_id'), "Required: route_id"
+    with validator(self):
+      assert self.get('route_type'), "Required: route_type"
+    with validator(self):
+      assert self.vehicle(), "Invalid route_type: %s"%self.get('route_type')
+    with validator(self): 
+      assert self.get('route_short_name') or self.get('route_long_name'), "Must provide either route_short_name or route_long_name"
     # Optional
-    if self.get('agency_id'):
-      # TODO: check parent agency
-      pass
-    if self.get('route_desc'):
-      pass
-    if self.get('route_url'):
-      assert self.get('route_url').startswith('http')
-    if self.get('route_color'):
-      color = self.get('route_color').lower()
-      for j in [color[i:i+2] for i in range(0,5,2)]:
-        assert 0 <= int(j,16) <= 255
-    if self.get('route_text_color'):
-      color = self.get('route_color').lower()
-      for j in [color[i:i+2] for i in range(0,5,2)]:
-        assert 0 <= int(j,16) <= 255
+    with validator(self):
+      if self.get('agency_id'): pass
+    with validator(self):
+      if self.get('route_desc'): pass      
+    with validator(self): 
+      if self.get('route_url'):
+        assert self.get('route_url').startswith('http'), "route_url must start with http(s):// scheme"
+    with validator(self): 
+      if self.get('route_color'):
+        color = self.get('route_color').lower()
+        for j in [color[i:i+2] for i in range(0,5,2)]:
+          assert 0 <= int(j,16) <= 255, "Invalid route_color: %s"%color
+    with validator(self): 
+      if self.get('route_text_color'):
+        color = self.get('route_color').lower()
+        for j in [color[i:i+2] for i in range(0,5,2)]:
+          assert 0 <= int(j,16) <= 255, "Invalid route_text_color: %s"%color
       

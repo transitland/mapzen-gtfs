@@ -1,5 +1,6 @@
 """GTFS Stop entity."""
 import entity
+import validation
 
 class Stop(entity.Entity):  
   """GTFS Stop entity."""
@@ -46,33 +47,45 @@ class Stop(entity.Entity):
     return serves
 
   ##### Validation #####
-  def validate(self):
+  def validate(self, validator=None):
+    validator = validation.make_validator(validator)
     # Required
-    assert self.get('stop_id')
-    assert self.get('stop_name')
-    assert self.get('stop_lat')
-    assert self.get('stop_lon')
-    assert self.point() # check as float
-    assert -180 <= self.point()[0] <= 180
-    assert -90 <= self.point()[1] <= 90 
+    with validator(self): 
+      assert self.get('stop_id'), "Required: stop_id"
+    with validator(self): 
+      assert self.get('stop_name'), "Required: stop_name"
+    with validator(self): 
+      assert self.get('stop_lat'), "Required: stop_lat"
+    with validator(self): 
+      assert self.get('stop_lon'), "Required: stop_lon"
+    with validator(self): 
+      assert self.point(), "Unable to create point from (stop_lon,stop_lat)"
+    with validator(self): 
+      assert -180 <= self.point()[0] <= 180, "Longitude out of bounds: %s"%self.point()[0]
+    with validator(self): 
+      assert -90 <= self.point()[1] <= 90, "Latitude out of bounds: %s"%Self.point()[1]
     # Optional
-    if self.get('stop_code'):
-      pass
-    if self.get('stop_desc'):
-      # TODO: if stop_desc = stop_name, warn.
-      pass
-    if self.get('zone_id'):
-      # TODO: If zone_id and station, warn.
-      pass
-    if self.get('stop_url'):
-      assert self.get('stop_url').startswith('http')
-    if self.get('location_type'):
-      assert int(self.get('location_type')) in [0,1]
-    if self.get('parent_station'):
-      assert not self.get('zone_id')
-      assert self.get('location_type') != '1'
-    if self.get('stop_timezone'):
-      assert pytz.timezone(self.get('stop_timezone'))
-    if self.get('wheelchair_boarding'):
-      assert int(self.get('wheelchair_boarding')) in [0,1,2]
-      
+    with validator(self):
+      if self.get('stop_desc') == self.get('stop_name'):
+        raise validation.ValidationWarning("stop_desc and stop_name are the same")        
+    with validator(self):
+      if self.get('zone_id') and int(self.get('location_type') or 0):
+        raise validation.ValidationWarning("zone_id set on a station")
+    with validator(self): 
+      if self.get('stop_url'):
+        assert self.get('stop_url').startswith('http'), "stop_url must begin with http(s):// scheme"
+    with validator(self): 
+      if self.get('location_type'):
+        assert int(self.get('location_type') or 0) in [0,1], "Invalid location_type, must be 0, 1: %s"%self.get('location_type')
+    with validator(self):
+      if int(self.get('location_type') or 0) and self.get('parent_station'):
+        assert not self.get('parent_station'), "A station cannot contain another station"          
+    with validator(self): 
+      if self.get('stop_timezone'):
+        assert pytz.timezone(self.get('stop_timezone')), "Invalid timezone: %s"%self.get('stop_timezone')
+    with validator(self): 
+      if self.get('wheelchair_boarding'):
+        assert int(self.get('wheelchair_boarding') or 0) in [0,1,2], "Invalid wheelchair_boarding, must be 0, 1, 2: %s"%self.get('wheelchair_boarding')
+    with validator(self):
+      if self.get('stop_code'):
+        pass

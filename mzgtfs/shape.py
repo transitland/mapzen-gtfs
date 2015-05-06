@@ -1,5 +1,6 @@
 """GTFS ShapeRow entity; these can be collected into a ShapeLine"""
 import entity
+import validation
 
 class ShapeRow(entity.Entity):
   """A row in shapes.txt"""
@@ -22,6 +23,9 @@ class ShapeRow(entity.Entity):
       "type": 'Point',
       "coordinates": self.point(),
     }
+
+  def validate(self, validator=None):
+    validator = validation.make_validator(validator)
 
 class ShapeLine(entity.Entity):
   """A collection of ShapeRows."""

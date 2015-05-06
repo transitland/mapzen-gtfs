@@ -1,8 +1,10 @@
 """GTFS StopTime entity."""
+
 import entity
+import validation
 
 class WideTime(object):
-  def __init__(self, hours, minutes, seconds):
+  def __init__(self, hours=0, minutes=0, seconds=0):
     assert 0 <= hours
     assert 0 <= minutes <= 60
     assert 0 <= seconds <= 60
@@ -58,28 +60,41 @@ class StopTime(entity.Entity):
     return int(self.get('stop_sequence'))  
     
   ##### Validation #####
-  def validate(self):
+  def validate(self, validator=None):
+    validator = validation.make_validator(validator)
     # Required
-    assert self.get('stop_id')
-    assert self.get('trip_id')
-    assert self.get('stop_sequence')
-    if self.get('arrival_time'):
-      assert WideTime.from_string(self.get('arrival_time'))
-    if self.get('departure_time'):
-      assert WideTime.from_string(self.get('departure_time'))
-    assert self.arrive() <= self.depart()
-    assert self.sequence() >= 0
+    with validator(self): 
+      assert self.get('stop_id'), "Required: stop_id"
+    with validator(self): 
+      assert self.get('trip_id'), "Required: trip_id"
+    with validator(self): 
+      assert self.get('stop_sequence'), "Required: stop_sequence"
+    with validator(self):
+      if self.get('arrival_time'):
+        assert WideTime.from_string(self.get('arrival_time')), "Invalid arrival_time: %s"%self.get('arrival_time')
+    with validator(self):
+      if self.get('departure_time'):
+        assert WideTime.from_string(self.get('departure_time')), "Invalid departure_time: %s"%self.get('departure_time')
+    with validator(self): 
+      assert self.arrive() <= self.depart(), "Cannot depart before arriving!: %s -> %s"%(self.arrive(), self.depart())
+    with validator(self):
+      assert self.sequence() >= 0, "Invalid stop_sequence: %s"%self.get('stop_sequence')
     # Optional
-    if self.get('stop_headsign'):
-      pass
-    if self.get('pickup_type'):
-      assert int(self.get('pickup_type')) in [0,1,2,3]
-    if self.get('drop_off_type'):
-      assert int(self.get('drop_off_type')) in [0,1,2,3]
-    if self.get('shape_dist_traveled'):
-      pass
-    if self.get('timepoint'):
-      assert int(self.get('timepoint')) in [0,1]
-      if int(self.get('timepoint')) == 1:
-        assert self.arrive()
-        assert self.depart()
+    with validator(self):
+      if self.get('pickup_type'):
+        assert int(self.get('pickup_type')) in [0,1,2,3], "Invalid pickup_type, must be 0,1,2,3: %s"%self.get('pickup_type')
+    with validator(self): 
+      if self.get('drop_off_type'):
+        assert int(self.get('drop_off_type')) in [0,1,2,3], "Invalid drop_off_type, must be 0,1,2,3: %s"%self.get('drop_off_type')
+    with validator(self):
+      if self.get('timepoint'):
+        assert int(self.get('timepoint')) in [0,1], "Invalid timepoint, must be 0,1: %s"%self.get('timepoint')
+    with validator(self):
+      if int(self.get('timepoint',0)) == 1:
+        assert self.arrive() and self.depart(), "Exact timepoints require arrival_time and departure_time"
+    with validator(self):
+      if self.get('stop_headsign'):
+        pass
+    with validator(self):
+      if self.get('shape_dist_traveled'):
+        pass
