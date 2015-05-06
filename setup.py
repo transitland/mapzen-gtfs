@@ -11,7 +11,7 @@ setup(
   url='https://github.com/transitland/mapzen-gtfs',
   license='License :: OSI Approved :: MIT License',
   packages=['mzgtfs'],
-  install_requires=['unicodecsv', 'mzgeohash'],
+  install_requires=['unicodecsv', 'mzgeohash', 'pytz'],
   zip_safe=False,
   # Include examples.
   package_data = {
