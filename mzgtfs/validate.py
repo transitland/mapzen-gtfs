@@ -6,7 +6,7 @@ import feed
 import validation
 
 if __name__ == "__main__":
-  parser = argparse.ArgumentParser(description='GTFS Info and JSON export')
+  parser = argparse.ArgumentParser(description='Validate a GTFS feed.')
   parser.add_argument('filename', help='GTFS File')
   parser.add_argument('--debug', 
     help='Show helpful debugging information', 
