@@ -19,3 +19,4 @@ from trip import Trip
 from stop import Stop
 from stoptime import StopTime
 from shape import ShapeRow, ShapeLine
+from calendar import Calendar

@@ -27,6 +27,7 @@ class Feed(object):
     'stops': entities.Stop,
     'stop_times': entities.StopTime,
     'shapes': entities.ShapeRow,
+    'calendar': entities.Calendar,
     None: entities.Entity
   }
 
@@ -184,3 +185,9 @@ class Feed(object):
       ret[point['shape_id']].add_child(point)
     return ret
     
+  def dates(self):
+    data = self.read('calendar')
+    return [
+      min(i.start() for i in data),
+      max(i.end() for i in data)
+    ]
