@@ -194,8 +194,10 @@ class Feed(object):
     ]
     
   def preload(self):
-    for agency in self.agencies():
+    agencies = self.agencies()
+    for agency in agencies:
       agency.preload()
+    self.cache['agency'] = agencies
 
   ##### Validation #####
   
