@@ -20,7 +20,7 @@ Alternatively, [download from PyPi](https://pypi.python.org/pypi/mzgtfs) or clon
 python ./setup.py install
 ```
 
-The dependencies [mzgeohash](https://github.com/transitland/mapzen-geohash) and [unicodecsv](https://pypi.python.org/pypi/unicodecsv) will be automatically installed using the above methods.
+The dependency [unicodecsv](https://pypi.python.org/pypi/unicodecsv) will be automatically installed using the above methods.
 
 ## Reading tables
 

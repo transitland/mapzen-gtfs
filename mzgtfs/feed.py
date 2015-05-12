@@ -192,6 +192,10 @@ class Feed(object):
       min(i.start() for i in data),
       max(i.end() for i in data)
     ]
+    
+  def preload(self):
+    for agency in self.agencies():
+      agency.preload()
 
   ##### Validation #####
   
