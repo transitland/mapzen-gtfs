@@ -60,7 +60,7 @@ class Agency(entity.Entity):
       route.add_parent(self)
     # Second, load all trips.
     trips_by_id = {}
-    for trip in self._feed.iterread('trips'):
+    for trip in self._feed.read('trips'):
       if trip['route_id'] in routes_by_id:
         trips_by_id[trip.id()] = trip
         # set directly
@@ -68,10 +68,10 @@ class Agency(entity.Entity):
         trip.add_parent(routes_by_id[trip['route_id']])
     # Third, load all stops...
     stops_by_id = {}
-    for stop in self._feed.iterread('stops'):
+    for stop in self._feed.read('stops'):
       stops_by_id[stop.id()] = stop
     # Finally, load stop_times.
-    for stop_time in self._feed.iterread('stop_times'):
+    for stop_time in self._feed.read('stop_times'):
       if stop_time['trip_id'] in trips_by_id:
         # set directly
         stop_time.add_child(stops_by_id[stop_time['stop_id']])
@@ -97,7 +97,7 @@ class Agency(entity.Entity):
       check = lambda r:(r.get('agency_id') == self.id())
     # Get the routes...    
     return set(
-      filter(check, self._feed.iterread('routes'))
+      filter(check, self._feed.read('routes'))
     )
   
   def routes(self):

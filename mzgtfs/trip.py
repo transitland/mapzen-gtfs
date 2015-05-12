@@ -15,7 +15,7 @@ class Trip(entity.Entity):
     """Return stop_times for this trip."""
     return set([
       stop_time for stop_time
-      in self._feed.iterread('stop_times')
+      in self._feed.read('stop_times')
       if stop_time.get('trip_id') == self.id()
     ])
     

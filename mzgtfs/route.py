@@ -77,7 +77,7 @@ class Route(entity.Entity):
     """Children: Trips"""
     return set([
       trip for trip
-      in self._feed.iterread('trips')
+      in self._feed.read('trips')
       if trip.get('route_id') == self.id()
     ])
 
