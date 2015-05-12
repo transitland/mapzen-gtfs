@@ -12,6 +12,15 @@ class WideTime(object):
     self.minutes = minutes
     self.seconds = seconds
   
+  def as_seconds(self):
+    return self.hours * 3600 + self.minutes * 60 + self.seconds
+    
+  def __add__(self, other):
+    return self.as_seconds() + other.as_seconds()
+  
+  def __sub__(self, other):
+    return self.as_seconds() - other.as_seconds()
+  
   @classmethod
   def from_string(cls, value):
     return cls(*map(int, value.split(':')))
@@ -47,7 +56,7 @@ class StopTime(entity.Entity):
   # Graph
   def stops(self):
     return set(self.children())
-    
+
   def arrive(self):
     if self.get('arrival_time'):
       return WideTime.from_string(self.get('arrival_time'))
