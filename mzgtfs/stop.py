@@ -91,7 +91,7 @@ class Stop(entity.Entity):
         assert validation.valid_url(self.get('stop_url')), "Invalid stop_url"
     with validator(self): 
       if self.get('location_type'):
-        assert validation.valid_bool(self.get('location_type')), \
+        assert validation.valid_bool(self.get('location_type'), empty=True), \
           "Invalid location_type"
     with validator(self):
       if int(self.get('location_type') or 0) and self.get('parent_station'):
@@ -102,9 +102,20 @@ class Stop(entity.Entity):
         assert validation.valid_tz(self.get('stop_timezone')), "Invalid timezone"
     with validator(self): 
       if self.get('wheelchair_boarding'):
-        assert validation.valid_int(self.get('wheelchair_boarding'), vmin=0, vmax=2), \
+        assert validation.valid_int(self.get('wheelchair_boarding'), vmin=0, vmax=2, empty=True), \
           "Invalid wheelchair_boarding"
     with validator(self):
       if self.get('stop_code'):
         pass
     return validator
+    
+  def validate_feed(self, validator=None):
+    validator = super(Stop, self).validate_feed(validator)  
+    with validator(self):
+      if self.get('parent_station'):
+        parent_station = self._feed.stop(self.get('parent_station'))
+        assert parent_station, "Unknown parent_station"
+        assert int(parent_station.get('location_type') or 0) == 1, \
+          "Invalid parent_station, parent must have location_type set to 1."
+    return validator
+    

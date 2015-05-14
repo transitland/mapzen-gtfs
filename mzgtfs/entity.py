@@ -18,6 +18,7 @@ class Entity(object):
   KEY = None
   REQUIRED = []
   OPTIONAL = []
+  
   def __init__(self, **data):
     """Row data from DictReader, and reference to feed."""
     # The row data. 
@@ -150,4 +151,8 @@ class Entity(object):
   
   def validate(self, validator=None):
     return validation.make_validator(validator)
+    
+  def validate_feed(self, validator=None):
+    return validation.make_validator(validator)
+    
     

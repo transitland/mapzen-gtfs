@@ -74,9 +74,9 @@ class Agency(entity.Entity):
     """Return all routes for this agency."""
     return set(self.children()) # copy
   
-  def route(self, id):
+  def route(self, key):
     """Return a single route by ID."""
-    return util.filtfirst(self.routes(), id=id)
+    return util.filtfirst(self.routes(), id=key)
   
   def trips(self):
     """Return all trips for this agency."""
@@ -85,9 +85,9 @@ class Agency(entity.Entity):
       trips |= route.trips()
     return trips
   
-  def trip(self, id):
+  def trip(self, key):
     """Return a single trip by ID."""
-    return util.filtfirst(self.trips(), id=id)
+    return util.filtfirst(self.trips(), id=key)
 
   def stops(self):
     """Return all stops visited by trips for this agency."""
@@ -96,9 +96,9 @@ class Agency(entity.Entity):
       stops |= stop_time.stops()
     return stops
 
-  def stop(self, id):
+  def stop(self, key):
     """Return a single stop by ID."""
-    return util.filtfirst(self.stops(), id=id)
+    return util.filtfirst(self.stops(), id=key)
     
   def stop_times(self):
     """Return all stop_times for this agency."""
@@ -116,12 +116,11 @@ class Agency(entity.Entity):
       assert self.get('agency_name'), \
         "Required: agency_name"
     with validator(self): 
-      assert self.get('agency_url'), \
-        "Required: agency_url"
-    with validator(self):
+      assert self.get('agency_url'), "Required: agency_url"
       assert validation.valid_url(self.get('agency_url')), \
         "Invalid agency_url"
     with validator(self):
+      assert self.get('agency_timezone'), "Required: agency_timezone"
       assert validation.valid_tz(self.get('agency_timezone')), \
         "Invalid agency_timezone"
     # Optional
@@ -139,8 +138,4 @@ class Agency(entity.Entity):
     with validator(self):
       if self.get('agency_phone'):
         pass
-    return validator
-
-  def validate_feed(self, validator=None):
-    validator = super(Agency, self).validate_feed(validator)
     return validator

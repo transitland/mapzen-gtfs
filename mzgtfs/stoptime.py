@@ -76,7 +76,7 @@ class StopTime(entity.Entity):
           "Invalid drop_off_type, must be 0,1,2,3: %s"%self.get('drop_off_type')
     with validator(self):
       if self.get('timepoint'):
-        assert validation.valid_bool(self.get('timepoint')), \
+        assert validation.valid_bool(self.get('timepoint'), empty=True), \
           "Invalid timepoint"
     with validator(self):
       if int(self.get('timepoint',0)) == 1:
@@ -89,3 +89,13 @@ class StopTime(entity.Entity):
       if self.get('shape_dist_traveled'):
         pass
     return validator
+
+  def validate_feed(self, validator=None):
+    # TODO: Check this in feed, since it can be a faster set operation?
+    validator = super(StopTime, self).validate_feed(validator)
+    with validator(self):
+      assert self._feed.trip(self.get('trip_id')), "Unknown trip_id"
+    with validator(self):
+      assert self._feed.stop(self.get('stop_id')), "Unknown stop_id"
+    return validator
+    

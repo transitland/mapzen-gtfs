@@ -1,5 +1,6 @@
 """GTFS Trip entity."""
 import entity
+import validation
 
 class Trip(entity.Entity):
   """GTFS Trip entity."""
@@ -56,13 +57,15 @@ class Trip(entity.Entity):
     # Optional
     with validator(self):
       if self.get('direction_id'):
-        assert int(self.get('direction_id')) in [0,1], "Invalid direction_id, must be 0,1: %s"%self.get('direction_id')
+        assert validation.valid_bool(self.get('direction_id')), "Invalid direction_id"
     with validator(self):
       if self.get('wheelchair_accessible'):
-        assert int(self.get('wheelchair_accessible')) in [0,1,2], "Invalid wheelchair_accessible, must be 0,1,2: %s"%self.get('wheelchair_accessible')
+        assert validation.valid_int(self.get('wheelchair_accessible'), vmin=0, vmax=2, empty=True), \
+          "Invalid wheelchair_accessible"
     with validator(self):
       if self.get('bikes_allowed'):
-        assert int(self.get('bikes_allowed')) in [0,1,2], "Invalid bikes_allowed, must be 0,1,2: %s"%self.get('bikes_allowed')
+        assert validation.valid_int(self.get('bikes_allowed'), vmin=0, vmax=2, empty=True), \
+          "Invalid bikes_allowed"
     with validator(self):
       if self.get('trip_headsign'):
         pass
@@ -75,3 +78,20 @@ class Trip(entity.Entity):
     with validator(self):
       if self.get('shape_id'):
         pass
+
+  def validate_feed(self, validator=None):
+    validator = super(Trip, self).validate_feed(validator)
+    with validator(self):
+      assert self._feed.route(self.get('route_id')), "Unknown route_id"
+    with validator(self):
+      assert self._feed.serviceperiod(self.get('service_id')), "Unknown service_id"
+    with validator(self):
+      cur = 0
+      for i in self.stop_sequence():
+        j = int(i.get('stop_sequence'))
+        assert j > cur, \
+          "Invalid stop_time sequence: stop_sequence must increase"
+        cur = j
+    # TODO: validate shape
+    return validator
+    

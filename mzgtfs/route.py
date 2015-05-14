@@ -107,8 +107,7 @@ class Route(entity.Entity):
       assert self.get('route_id'), "Required: route_id"
     with validator(self):
       assert self.get('route_type'), "Required: route_type"
-    with validator(self):
-      assert self.vehicle(), "Invalid route_type: %s"%self.get('route_type')
+      assert self.vehicle(), "Invalid route_type"
     with validator(self): 
       assert self.get('route_short_name') or self.get('route_long_name'), \
         "Must provide either route_short_name or route_long_name"

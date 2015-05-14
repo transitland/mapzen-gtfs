@@ -48,7 +48,7 @@ class Frequency(entity.Entity):
     # Optional
     with validator(self):
       if self.get('exact_times'):
-        assert validation.valid_bool(self.get('exact_times')), \
+        assert validation.valid_bool(self.get('exact_times'), empty=True), \
           "Invalid exact_times"
     return validator
     
