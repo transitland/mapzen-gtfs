@@ -2,6 +2,7 @@
 import pytz
 import traceback
 import contextlib
+import datetime
 
 import iso639
 import widetime
@@ -29,11 +30,26 @@ def valid_tz(tz):
 def valid_language(lang):
   return iso639.get_language(lang)
 
-def valid_int(value, vmin=None, vmax=None):
-  if not value:
-    value = 0
+def valid_int(value, vmin=None, vmax=None, empty=False):
+  # Allow empty string if empty=True
+  if value == '' and empty:
+    return True
   try:
     value = int(value)
+  except ValueError, e:
+    return False
+  if vmin is not None and value < vmin:
+    return False    
+  if vmax is not None and value > vmax:
+    return False
+  return True
+  
+def valid_float(value, vmin=None, vmax=None, empty=False):
+  # Allow empty string if empty=True
+  if value == '' and empty:
+    return True
+  try:
+    value = float(value)
   except ValueError, e:
     return False
   if vmin is not None and value < vmin:
@@ -45,16 +61,33 @@ def valid_int(value, vmin=None, vmax=None):
 def valid_in(value, within):
   return value in within
 
-def valid_bool(value):
-  if not value:
-    value = 0
+def valid_bool(value, empty=False):
+  if value == '' and empty:
+    return True
   try:
     value = int(value)
   except ValueError, e:
     return False
   return value in [0,1]
 
+def valid_date(value, empty=False):
+  if not value and empty:
+    return True
+  if len(value) != 8:
+    return False
+  try:
+    datetime.datetime.strptime(value, '%Y%m%d')
+  except ValueError, e:
+    return False
+  return True
+
 def valid_widetime(value):
+  if len(value.split(':')) != 3:
+    return False
+  if len(value) < 7:
+    return False
+  if len(value) > 8:
+    return False
   try:
     widetime.WideTime.from_string(value)
   except ValueError:
