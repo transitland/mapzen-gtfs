@@ -27,23 +27,6 @@ class TestAgency(unittest.TestCase):
     agency = entities.Agency(**self.expect)    
     assert agency.feedid('test') == 'gtfs://test/o/DTA'
 
-  def test__read_parents(self):
-    # empty set
-    agency = util.preload_agency()
-    assert not agency._read_parents()
-
-  def test__read_children(self):
-    # check for 5 child routes
-    agency = util.preload_agency()
-    assert len(agency._read_children()) == 5
-    
-  def test__read_children_multipleagencies(self):
-    agency = util.preload_agency(
-      feed='sample-feed-multipleagencies.zip', 
-      agency_id='ATD'
-    )
-    assert len(agency._read_children()) == 0
-
   # Must get from Feed for remaining tests...
   def test_point(self):
     agency = util.preload_agency()

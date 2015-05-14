@@ -62,7 +62,7 @@ class TestFeed(unittest.TestCase):
     # check we got 9 entities
     assert len(data) == 9
     # check cache
-    assert 'stops' in f.cache
+    assert 'stops' in f.by_id
   
   def test_read_path(self):
     # Test overlay
@@ -82,13 +82,6 @@ class TestFeed(unittest.TestCase):
     with self.assertRaises(Exception):
       f.read('missing')
   
-  def test_iterread(self):
-    # Test generator read
-    f = feed.Feed(util.example_feed())
-    data = f.iterread('stops')
-    assert inspect.isgenerator(data)
-    assert len(list(data)) == 9
-
   def test_write(self):
     f = feed.Feed()
     data = [entities.Agency(**self.agency_expect)]
@@ -181,8 +174,8 @@ class TestFeed(unittest.TestCase):
     # Read a second time
     data2 = f.read('stops')
     assert len(data1) == len(data2)
-    assert 'stops' in f.cache
-    assert len(data1) == len(f.cache['stops'])
+    assert 'stops' in f.by_id
+    assert len(data1) == len(f.by_id['stops'])
 
   def test_read_invalidfile(self):
     f = feed.Feed(util.example_feed())

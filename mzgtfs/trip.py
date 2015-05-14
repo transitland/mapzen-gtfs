@@ -1,24 +1,34 @@
 """GTFS Trip entity."""
-
 import entity
-import validation
 
 class Trip(entity.Entity):
   """GTFS Trip entity."""
-  entity_type = 't'
-  
+  ENTITY_TYPE = 't'
+  KEY = 'trip_id'
+  REQUIRED = [
+    'trip_id',
+    'route_id',
+    'service_id',
+  ]
+  OPTIONAL = [
+    'trip_headsign',
+    'trip_short_name',
+    'direction_id',
+    'block_id',
+    'shape_id',
+    'wheelchair_accessible',
+    'bikes_allowed',
+  ]  
   def id(self):
     return self.get('trip_id')
   
+  def start(self):
+    return self.stop_sequence()[0].arrive()
+  
+  def end(self):
+    return self.stop_sequence()[-1].arrive()
+  
   # Graph
-  def _read_children(self):
-    """Return stop_times for this trip."""
-    return set([
-      stop_time for stop_time
-      in self._feed.read('stop_times')
-      if stop_time.get('trip_id') == self.id()
-    ])
-    
   def stop_times(self):
     return set(self.children()) # copy
 
@@ -32,14 +42,17 @@ class Trip(entity.Entity):
     
   ##### Validation #####
   def validate(self, validator=None):
-    validator = validation.make_validator(validator)
+    validator = super(Trip, self).validate(validator)
     # Required
     with validator(self): 
       assert self.get('route_id'), "Required: route_id"
     with validator(self): 
       assert self.get('service_id'), "Required: service_id"
-    with validator(self): 
+    with validator(self):
       assert self.get('trip_id'), "Required: trip_id"
+    # TODO: Warnings:
+    #   speed/vehicle_type
+    #   duplicate trips
     # Optional
     with validator(self):
       if self.get('direction_id'):
