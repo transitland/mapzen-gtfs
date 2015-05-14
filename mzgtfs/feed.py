@@ -107,7 +107,7 @@ class Feed(object):
       t = self.by_id[table]
       for item in self.iterread(table):
         t[item.get(key)] = item
-      return t.items()
+      return t.values()
     if table not in self.cache:
       self.cache[table] = []
     t = self.cache[table]
