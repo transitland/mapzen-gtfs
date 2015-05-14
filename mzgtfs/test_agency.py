@@ -77,7 +77,7 @@ class TestAgency(unittest.TestCase):
   
   def test_route(self):
     agency = util.preload_agency()
-    assert agency.route(id='AB')
+    assert agency.route('AB')
     
   def test_trips(self):
     agency = util.preload_agency()
