@@ -19,11 +19,10 @@ from trip import Trip
 from stop import Stop
 from stoptime import StopTime
 from shape import ShapeRow, ShapeLine
-from serviceperiod import ServicePeriod
+from serviceperiod import ServicePeriod, ServiceDate
 from farerule import FareRule
 from transfer import Transfer
 from frequency import Frequency
-
-# from fareattribute import FareAttribute
-FareAttribute = Entity
+from fareattribute import FareAttribute
+# from feedinfo import FeedInfo
 FeedInfo = Entity
