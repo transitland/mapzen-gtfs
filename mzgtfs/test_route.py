@@ -72,11 +72,6 @@ class TestRoute(unittest.TestCase):
       self.assertAlmostEqual(i[0],j[0])
       self.assertAlmostEqual(i[1],j[1])
     
-  def test__read_children(self):
-    agency = util.preload_agency()
-    route = agency.route(self.expect['route_id'])
-    assert len(route._read_children()) == 2
-        
   def test_trips(self):
     agency = util.preload_agency()
     route = agency.route(self.expect['route_id'])

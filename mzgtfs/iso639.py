@@ -213,4 +213,4 @@ LANGUAGES = dict((
 ))
 
 def get_language(code):
-  return LANGUAGES[code]
+  return LANGUAGES[code.lower()]

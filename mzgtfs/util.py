@@ -38,6 +38,6 @@ def preload_agency(**kw):
   import feed  
   agency_id = kw.pop('agency_id', 'DTA')
   f = feed.Feed(example_feed(**kw))
+  f.preload()
   agency = f.agency(agency_id)
-  agency.preload()
   return agency

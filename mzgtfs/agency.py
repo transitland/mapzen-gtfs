@@ -1,16 +1,24 @@
 """GTFS Agency entity."""
-import pytz
-
 import entity
 import geom
 import util
-import iso639
 import validation
 
 class Agency(entity.Entity):
   """GTFS Agency entity."""
-  entity_type = 'o'
-  
+  ENTITY_TYPE = 'o'
+  KEY = 'agency_id'
+  REQUIRED = [
+    'agency_name',
+    'agency_url',
+    'agency_timezone'
+  ]
+  OPTIONAL = [
+    'agency_id',
+    'agency_lang',
+    'agency_phone',
+    'agency_fare_url'
+  ]  
   def name(self):
     return self.get('agency_name')
 
@@ -49,34 +57,6 @@ class Agency(entity.Entity):
     }    
 
   # Agency specific methods.
-  def preload(self):
-    """Pre-load routes, trips, stops, etc."""
-    # First, load all routes.
-    routes_by_id = {}
-    for route in self.routes():
-      routes_by_id[route.id()] = route
-      # Set children & parents directly.
-      route._children = set()
-      route.add_parent(self)
-    # Second, load all trips.
-    trips_by_id = {}
-    for trip in self._feed.iterread('trips'):
-      if trip['route_id'] in routes_by_id:
-        trips_by_id[trip.id()] = trip
-        # set directly
-        trip._children = set()
-        trip.add_parent(routes_by_id[trip['route_id']])
-    # Third, load all stops...
-    stops_by_id = {}
-    for stop in self._feed.iterread('stops'):
-      stops_by_id[stop.id()] = stop
-    # Finally, load stop_times.
-    for stop_time in self._feed.iterread('stop_times'):
-      if stop_time['trip_id'] in trips_by_id:
-        # set directly
-        stop_time.add_child(stops_by_id[stop_time['stop_id']])
-        stop_time.add_parent(trips_by_id[stop_time['trip_id']])
-  
   def dates(self):
     found = set(trip.get('service_id') for trip in self.trips())
     dates = [
@@ -89,24 +69,14 @@ class Agency(entity.Entity):
       max(date.end() for date in dates)
     ]
   
-  # Graph.
-  def _read_children(self):
-    # Are we the only agency in the feed?
-    check = lambda r:True
-    if len(self._feed.agencies()) > 1:
-      check = lambda r:(r.get('agency_id') == self.id())
-    # Get the routes...    
-    return set(
-      filter(check, self._feed.iterread('routes'))
-    )
-  
+  # Graph.      
   def routes(self):
     """Return all routes for this agency."""
     return set(self.children()) # copy
   
-  def route(self, id):
+  def route(self, key):
     """Return a single route by ID."""
-    return util.filtfirst(self.routes(), id=id)
+    return util.filtfirst(self.routes(), id=key)
   
   def trips(self):
     """Return all trips for this agency."""
@@ -115,9 +85,9 @@ class Agency(entity.Entity):
       trips |= route.trips()
     return trips
   
-  def trip(self, id):
+  def trip(self, key):
     """Return a single trip by ID."""
-    return util.filtfirst(self.trips(), id=id)
+    return util.filtfirst(self.trips(), id=key)
 
   def stops(self):
     """Return all stops visited by trips for this agency."""
@@ -126,9 +96,9 @@ class Agency(entity.Entity):
       stops |= stop_time.stops()
     return stops
 
-  def stop(self, id):
+  def stop(self, key):
     """Return a single stop by ID."""
-    return util.filtfirst(self.stops(), id=id)
+    return util.filtfirst(self.stops(), id=key)
     
   def stop_times(self):
     """Return all stop_times for this agency."""
@@ -140,26 +110,32 @@ class Agency(entity.Entity):
   ##### Validation #####
     
   def validate(self, validator=None):
-    validator = validation.make_validator(validator)
+    validator = super(Agency, self).validate(validator)
     # Required
     with validator(self): 
-      assert self.get('agency_name'), "Required: agency_name"
+      assert self.get('agency_name'), \
+        "Required: agency_name"
     with validator(self): 
       assert self.get('agency_url'), "Required: agency_url"
+      assert validation.valid_url(self.get('agency_url')), \
+        "Invalid agency_url"
     with validator(self):
-      assert self.get('agency_url').startswith('http'), "agency_url must start with http(s):// scheme."
-    with validator(self):
-      assert pytz.timezone(self.get('agency_timezone')), "Required: agency_timezone"
+      assert self.get('agency_timezone'), "Required: agency_timezone"
+      assert validation.valid_tz(self.get('agency_timezone')), \
+        "Invalid agency_timezone"
     # Optional
     with validator(self): 
       if self.get('agency_lang'):
-        assert iso639.get_language(self.get('agency_lang')), "Unknown language: %s"%self.get('agency_lang')
+        assert validation.valid_language(self.get('agency_lang')), \
+          "Invalid language"
     with validator(self): 
       if self.get('agency_fare_url'):
-        assert self.get('agency_fare_url').startswith('http'), "agency_fare_url must start with http(s):// scheme."
+        assert validation.valid_url(self.get('agency_fare_url')), \
+          "Invalid agency_fare_url"
     with validator(self):
       if self.get('agency_id'): 
         pass
     with validator(self):
       if self.get('agency_phone'):
         pass
+    return validator

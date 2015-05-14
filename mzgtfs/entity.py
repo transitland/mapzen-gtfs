@@ -14,8 +14,11 @@ class Entity(object):
             Stop
   
   """
-  entity_type = None
-
+  ENTITY_TYPE = None
+  KEY = None
+  REQUIRED = []
+  OPTIONAL = []
+  
   def __init__(self, **data):
     """Row data from DictReader, and reference to feed."""
     # The row data. 
@@ -24,8 +27,8 @@ class Entity(object):
     # Reference to GTFS Reader.
     self._feed = None
     # Relationships (e.g. trips, stop_times, ...)
-    self._children = None  
-    self._parents = None
+    self._children = set()  
+    self._parents = set()
   
   # GTFS row data.
   def __len__(self):
@@ -80,7 +83,7 @@ class Entity(object):
     """A canonical Onestop-style ID for this entity."""
     return 'gtfs://%s/%s/%s'%(
       feedid,
-      self.entity_type,
+      self.ENTITY_TYPE,
       self.id()
     )
 
@@ -129,15 +132,8 @@ class Entity(object):
     
   def children(self):
     """Read and cache children."""
-    if self._children is not None:
-      return self._children
-    self._children = self._read_children()
     return self._children
     
-  def _read_children(self):
-    """Read children from GTFS feed."""
-    return set()
-  
   # ... parents
   def add_parent(self, parent):
     """Add a parent relationship."""
@@ -145,9 +141,6 @@ class Entity(object):
     
   def parents(self):
     """Read and cache parents."""
-    if self._parents is not None:
-      return self._parents
-    self._parents = self._read_parents()
     return self._parents
     
   def _read_parents(self):
@@ -157,5 +150,9 @@ class Entity(object):
   ##### Validation #####
   
   def validate(self, validator=None):
-    validator = validation.make_validator(validator)
+    return validation.make_validator(validator)
+    
+  def validate_feed(self, validator=None):
+    return validation.make_validator(validator)
+    
     

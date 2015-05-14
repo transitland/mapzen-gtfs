@@ -15,11 +15,6 @@ class TestTrip(unittest.TestCase):
     'service_id': 'FULLW'
   }
   
-  def test__read_children(self):
-    agency = util.preload_agency()
-    entity = agency.trip(self.expect['trip_id'])
-    assert len(entity._read_children()) == 5
-
   def test_stop_times(self):
     agency = util.preload_agency()
     entity = agency.trip(self.expect['trip_id'])

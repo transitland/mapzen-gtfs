@@ -27,11 +27,11 @@ The dependency [unicodecsv](https://pypi.python.org/pypi/unicodecsv) will be aut
 ```
 >>> import mzgtfs.feed
 >>> f = mzgtfs.feed.Feed('current.zip')
->>> f.read('routes') # List
+>>> f.routes()
 [<mzgtfs.entities.Route object at 0x10df47590>, <mzgtfs.entities.Route object at 0x10df47890>, <mzgtfs.entities.Route object at 0x10df478d0>, <mzgtfs.entities.Route object at 0x10df47910>, <mzgtfs.entities.Route object at 0x10df47950>, <mzgtfs.entities.Route object at 0x10df479d0>]
->>> f.iterread('routes') # Generator
-<generator object iterread at 0x10ea6c690>
->>> f.route(id='05').name()
+>>> f.route('05')
+<mzgtfs.route.Route object at 0x10c51c990>
+>>> f.route('05').name()
 u'Fremont - Daly City'
 ```
 
@@ -40,18 +40,18 @@ u'Fremont - Daly City'
 Many GTFS contain multiple agencies. You can construct a graph for each agency that includes only the relevant routes, stops, etc., by calling preload(). This can then be searched, or exported using json().
 
 ```
+>>> f.preload() # Load all tables and create relationships
 >>> f.agencies()
 [<mzgtfs.entities.Agency object at 0x105b99dd0>]
->>> bart = f.agency(id='BART')
+>>> bart = f.agency('BART')
 <mzgtfs.entities.Agency object at 0x10df3be10>
->>> bart.preload()
 >>> len(bart.routes())
 6
 >>> len(bart.trips())
 2528
 >>> len(bart.stops())
 47
->>> bart.route(id='05').name()
+>>> bart.route('05').name()
 u'Fremont - Daly City'
 >>> bart.stop('EMBR').name()
 u'Embarcadero'

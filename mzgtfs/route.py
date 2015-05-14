@@ -7,7 +7,21 @@ import validation
 
 class Route(entity.Entity):
   """GTFS Route entity."""
-  entity_type = 'r'
+  ENTITY_TYPE = 'r'
+  KEY = 'route_id'
+  REQUIRED = [
+    'route_id',
+    'route_short_name',
+    'route_long_name',
+    'route_type'    
+  ]
+  OPTIONAL = [
+    'agency_id',
+    'route_desc',
+    'route_url',
+    'route_color',
+    'route_text_color'
+  ]
   
   def name(self):
     return self.get('route_short_name') or self.get('route_long_name')
@@ -72,15 +86,7 @@ class Route(entity.Entity):
       '': None
     }[self.get('route_type')]
   
-  # Graph.
-  def _read_children(self):
-    """Children: Trips"""
-    return set([
-      trip for trip
-      in self._feed.iterread('trips')
-      if trip.get('route_id') == self.id()
-    ])
-
+  # Graph.  
   def trips(self):
     """Return trips for this route."""
     return set(self.children()) # copy
@@ -95,16 +101,20 @@ class Route(entity.Entity):
 
   ##### Validation #####
   def validate(self, validator=None):
-    validator = validation.make_validator(validator)
+    validator = super(Route, self).validate(validator)
     # Required
     with validator(self): 
       assert self.get('route_id'), "Required: route_id"
     with validator(self):
       assert self.get('route_type'), "Required: route_type"
-    with validator(self):
-      assert self.vehicle(), "Invalid route_type: %s"%self.get('route_type')
+      assert self.vehicle(), "Invalid route_type"
     with validator(self): 
-      assert self.get('route_short_name') or self.get('route_long_name'), "Must provide either route_short_name or route_long_name"
+      assert self.get('route_short_name') or self.get('route_long_name'), \
+        "Must provide either route_short_name or route_long_name"
+    # TODO: Warnings: 
+    #   short name too long
+    #   short name == long name
+    #   route_desc != route name
     # Optional
     with validator(self):
       if self.get('agency_id'): pass
@@ -112,15 +122,14 @@ class Route(entity.Entity):
       if self.get('route_desc'): pass      
     with validator(self): 
       if self.get('route_url'):
-        assert self.get('route_url').startswith('http'), "route_url must start with http(s):// scheme"
+        assert validation.valid_url(self.get('route_url')), \
+          "Invalid route_url"
     with validator(self): 
       if self.get('route_color'):
-        color = self.get('route_color').lower()
-        for j in [color[i:i+2] for i in range(0,5,2)]:
-          assert 0 <= int(j,16) <= 255, "Invalid route_color: %s"%color
+        assert validation.valid_color(self.get('route_color')), \
+          "Invalid route_color"
     with validator(self): 
       if self.get('route_text_color'):
-        color = self.get('route_color').lower()
-        for j in [color[i:i+2] for i in range(0,5,2)]:
-          assert 0 <= int(j,16) <= 255, "Invalid route_text_color: %s"%color
-      
+        assert validation.valid_color(self.get('route_text_color')), \
+          "Invalid route_text_color"
+    return validator

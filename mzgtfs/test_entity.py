@@ -124,12 +124,5 @@ class TestEntity(unittest.TestCase):
     entity = entities.Entity(**self.expect)    
     assert not entity.children()
     
-  def test__read_children(self):
-    entity = entities.Entity(**self.expect)
-    assert not entity._read_children()
-    
-  def test__read_parents(self):
-    entity = entities.Entity(**self.expect)
-    assert not entity._read_parents()
     
 
