@@ -29,6 +29,7 @@ class Feed(object):
     'stop_times': entities.StopTime,
     'shapes': entities.ShapeRow,
     'calendar': entities.ServicePeriod,
+    'calendar_dates': entities.ServiceDate,
     'fare_rules': entities.FareRule,
     'fare_attributes': entities.FareAttribute,
     'transfers': entities.Transfer,
@@ -197,46 +198,27 @@ class Feed(object):
 
   ##### Keyed entities #####
   
-  def agencies(self):
-    """Return the agencies in this feed."""
-    return self.read('agency')
-
-  def agency(self, key):
-    """Return a single agency by ID."""
-    if 'agency' not in self.by_id:
-      self.read('agency')
-    return self.by_id['agency'][key]
-
-  def routes(self):
-    """Return the routes in this feed."""
-    return self.read('routes')
-
-  def route(self, key):
-    """Return a single route by ID."""
-    if 'routes' not in self.by_id:
-      self.read('routes')
-    return self.by_id['routes'][key]
-
-  def stops(self):
-    """Return the stops."""
-    return self.read('stops')
-
-  def stop(self, key):
-    """Return a single stop by ID."""
-    if 'stops' not in self.by_id:
-      self.read('stops')
-    return self.by_id['stops'][key]
+  def _entities(self, table):
+    return self.read(table)
   
-  def trips(self):
-    """Return the trips."""
-    return self.read('trips')
+  def _entity(self, table, key):
+    if table not in self.by_id:
+      self.read(table)
+    return self.by_id[table][key]
+    
+  def agencies(self): return self._entities('agency')
+  def agency(self, key): return self._entity('agency', key)
+  def routes(self): return self._entities('routes')
+  def route(self, key): return self._entity('routes', key)
+  def stops(self): return self._entities('stops')
+  def stop(self, key): return self._entity('stops', key)
+  def trips(self): return self._entities('trips')
+  def trip(self, key): return self._entity('trips', key)
+  def fares(self): return self._entities('fare_attributes')
+  def fare(self, key): return self._entity('fare_attributes', key)
+  def serviceperiods(self): return self._entities('calendar')
+  def serviceperiod(self, key): return self._entity('calendar', key)
 
-  def trip(self, key):
-    """Return a single trip by ID."""
-    if 'trips' not in self.by_id:
-      self.read('trips')
-    return self.by_id['trips'][key]
-  
   def shapes(self):
     """Return the route shapes as a dictionary."""
     # Todo: Cache?
@@ -277,7 +259,8 @@ class Feed(object):
       print "Validating required file:", f
       data = self.read(f)
       for i in data:
-        i.validate(validator=validator)    
+        i.validate(validator=validator)
+        i.validate_feed(validator=validator)  
     # optional
     optional = [
       'calendar_dates',
@@ -296,5 +279,6 @@ class Feed(object):
         data = []
       for i in data:
         i.validate(validator=validator)
+        i.validate_feed(validator=validator)  
     return validator
 
