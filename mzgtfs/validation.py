@@ -144,7 +144,7 @@ class ValidationManager(object):
     return
       
   def report(self):
-    print "===== Validation Errors ====="
+    print "Validation report:"
     for e in self.exceptions:
       print "%s: %s"%(e.source, e.message)
 
