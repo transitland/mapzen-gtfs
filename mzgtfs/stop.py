@@ -33,7 +33,6 @@ class Stop(entity.Entity):
     try:
       return float(self.get('stop_lon')), float(self.get('stop_lat'))
     except ValueError, e:
-      print "Warning: no stop_lon, stop_lat:", self.name(), self.id()
       return None
 
   def bbox(self):

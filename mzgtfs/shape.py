@@ -49,7 +49,6 @@ class ShapeRow(entity.Entity):
     try:
       return float(self.get('shape_pt_lon')), float(self.get('shape_pt_lat'))
     except ValueError, e:
-      print "Warning: no shape_pt_lon, shape_pt_lat:", self.name(), self.id()
       return None
 
   def geometry(self):
