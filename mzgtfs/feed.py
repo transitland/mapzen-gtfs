@@ -6,8 +6,9 @@ import json
 import os
 import tempfile
 import glob
-
+import subprocess
 import csv
+
 try:
   import unicodecsv
 except ImportError:
@@ -46,6 +47,10 @@ class Feed(object):
     self.debug = debug
 
   ##### Read / write #####
+  
+  def log(self, msg):
+    if self.debug:
+      print msg
 
   def _open(self, table):
     arcname = '%s.txt'%table
@@ -65,8 +70,7 @@ class Feed(object):
 
   def iterread(self, table):
     """Iteratively read data from a GTFS table. Returns namedtuples."""
-    if self.debug: # pragma: no cover
-      print "Reading:", table
+    self.log('Reading: %s'%table)
     # Entity class
     cls = self.FACTORIES[table]
     f = self._open(table)
@@ -159,18 +163,16 @@ class Feed(object):
     if path and os.path.isdir(path):
       files += glob.glob(os.path.join(path, '*.txt'))
     # Write files.
-    if self.debug: # pragma: no cover
-      print "Creating zip archive:", filename
-
+    self.log("Creating zip archive: %s"%filename)
     zf = zipfile.ZipFile(filename, 'a')
     for f in files:
-      if self.debug: # pragma: no cover
-        print "... adding:", f
       base = os.path.basename(f)
       if base in arcnames:
-        continue
-      arcnames.append(base)
-      zf.write(f, base)
+        self.log('... skipping: %s'%f)
+      else:
+        self.log('... adding: %s'%f)
+        arcnames.append(base)
+        zf.write(f, base)
 
     # Clone from existing zip archive.
     if clone and os.path.exists(clone):
@@ -178,15 +180,16 @@ class Feed(object):
       for f in zc.namelist():
         base = os.path.basename(f)
         if os.path.splitext(base)[-1] != '.txt':
-          continue
-        if base in arcnames:
-          continue
-        arcnames.append(base)
-        if self.debug: # pragma: no cover
-          print "... copying:", f
-        with zc.open(f) as i:
-          data = i.read()
-        zf.writestr(base, data)
+          pass
+          # self.log('... skipping from clone: %s'%f)
+        elif base in arcnames:
+          self.log('... skipping from clone: %s'%f)
+        else:
+          self.log('... adding from clone: %s'%f)
+          arcnames.append(base)
+          with zc.open(f) as i:
+            data = i.read()
+          zf.writestr(base, data)
     zf.close()
 
   def preload(self):
@@ -198,8 +201,14 @@ class Feed(object):
         self.read(table)
       except KeyError:
         pass
+
+    default_agency_id = None
+    agencies = self.agencies()
+    if len(agencies) == 1:
+      default_agency_id = agencies[0].get('agency_id')
+
     for route in self.routes():
-      route.add_parent(self.agency(route.get('agency_id')))
+      route.add_parent(self.agency(route.get('agency_id') or default_agency_id))
     for trip in self.trips():
       trip.add_parent(self.route(trip.get('route_id')))
     # Load stop_times  
@@ -234,8 +243,7 @@ class Feed(object):
     """Return the route shapes as a dictionary."""
     # Todo: Cache?
     # Group together by shape_id
-    if self.debug: # pragma: no cover
-      print "Generating shapes..."
+    self.log("Generating shapes...")
     ret = collections.defaultdict(entities.ShapeLine)
     for point in self.read('shapes'):
       ret[point['shape_id']].add_child(point)
@@ -254,9 +262,8 @@ class Feed(object):
   
   def validate(self, validator=None):
     validator = validation.make_validator(validator)
-    print "Building feed graph..."
+    self.log('Loading...')
     self.preload()
-    print "...Done"
     # required
     required = [
       'agency', 
@@ -267,7 +274,7 @@ class Feed(object):
       'calendar'
     ]
     for f in required:
-      print "Validating required file:", f
+      self.log("Validating required file: %s"%f)
       data = self.read(f)
       for i in data:
         i.validate(validator=validator)
@@ -283,7 +290,7 @@ class Feed(object):
       'feed_info'
     ]
     for f in optional:
-      print "Validating optional file:", f
+      self.log("Validating optional file: %s"%f)
       try:
         data = self.read(f)
       except KeyError, e:
@@ -293,3 +300,23 @@ class Feed(object):
         i.validate_feed(validator=validator)  
     return validator
 
+  def validate_feedvalidator(self, validator=None, report='report.html'):
+    validator = validation.make_validator(validator)
+    p = subprocess.Popen(
+      [
+        'feedvalidator.py',
+        '--memory_db',
+        '--noprompt',
+        '--output',
+        report,
+        self.filename
+      ],
+      stdout=subprocess.PIPE, 
+      stderr=subprocess.PIPE
+    )
+    stdout, stderr = p.communicate()
+    returncode = p.returncode
+    with validator(self):
+      errors = [i for i in stdout.split('\n') if i.startswith('ERROR:')]
+      if returncode:
+        raise validation.ValidationError('Errors reported by feedvalidator.py; see %s for details'%report)
