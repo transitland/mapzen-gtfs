@@ -40,7 +40,7 @@ class Entity(object):
   def __getitem__(self, key):
     """Proxy to row data."""
     # Work with either a dict or a namedtuple.
-    if hasattr(self.data, '_asdict'):
+    if hasattr(self.data, '_fields'):
       try:
         return getattr(self.data, key)
       except AttributeError:
@@ -57,7 +57,7 @@ class Entity(object):
       
   def set(self, key, value):
     # Convert from namedtuple to dict if setting value.
-    if hasattr(self.data, '_asdict'):
+    if hasattr(self.data, '_fields'):
       self.data = self.data._asdict()
     self.data[key] = value
   
@@ -65,9 +65,13 @@ class Entity(object):
     self._feed = feed
   
   def keys(self):
+    if hasattr(self.data, '_fields'):
+      return self.data._fields
     return self.data.keys()
     
   def items(self):
+    if hasattr(self.data, '_fields'):
+      return self.data._asdict().items()
     return self.data.items()
   
   # Name methods.
