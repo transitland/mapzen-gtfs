@@ -52,8 +52,8 @@ class ServicePeriod(entity.Entity):
     with validator(self):
       assert validation.valid_date(self.get('start_end'), empty=True), "Invalid start_end"
     with validator(self):
-      assert self.end() > self.start(), \
-        "Invalid end_date, must be greater than start_date"
+      assert self.end() >= self.start(), \
+        "Invalid end_date, must be at least start_date"
     # TODO: Warnings
     #   - no days of the week
     return validator

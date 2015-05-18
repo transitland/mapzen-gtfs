@@ -40,8 +40,8 @@ class Frequency(entity.Entity):
       assert validation.valid_widetime(self.get('end_time')), \
         "Invalid end_time"
     with validator(self):
-      assert self.end() > self.start(), \
-        "Invalid end_time, must be greater than start_date"
+      assert self.end() >= self.start(), \
+        "Invalid end_time, must at least start_date"
     with validator(self):
       assert validation.valid_int(self.get('headway_secs'), vmin=1), \
         "Invalid headway_secs"
