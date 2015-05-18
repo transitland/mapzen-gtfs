@@ -140,42 +140,53 @@ class Feed(object):
       for entity in entities:
         writer.writerow([entity.get(column) for column in columns])
 
-  def make_zip(self, filename, path=None, files=None, clone=None):
+  def make_zip(self, filename, files=None, path=None, clone=None):
     """Create a Zip archive.
     
     Provide any of the following:
-      path - A directory of .txt files
       files - A list of files
+      path - A directory of .txt files
       clone - Copy any files from a zip archive not specified above
-     """
+
+    Duplicate files will be ignored. The 'files' argument will be used first,
+    then files found in the specified 'path', then in the 
+    specified 'clone' archive.
+    """
     if filename and os.path.exists(filename):
       raise IOError('File exists: %s'%filename)     
-    files = set(files or [])
+    files = files or []
+    arcnames = []
     if path and os.path.isdir(path):
-      files |= set(glob.glob(os.path.join(path, '*.txt')))
-    # Check unique
-    arcnames = set([os.path.basename(f) for f in files])
-    common = arcnames & files
-    if common:
-      raise ValueError("Files must be unique: %s"%", ".join(common))
+      files += glob.glob(os.path.join(path, '*.txt'))
     # Write files.
     if self.debug: # pragma: no cover
       print "Creating zip archive:", filename
+
     zf = zipfile.ZipFile(filename, 'a')
-    # Clone from existing zip archive.
-    if clone and os.path.exists(clone):
-      zc = zipfile.ZipFile(clone, 'a')
-      # Filter out external files.  
-      for i in [j for j in zc.namelist() if j not in arcnames]:
-        if self.debug: # pragma: no cover
-          print "... copying:", i
-        with zc.open(i) as f:
-          data = f.read()
-        zf.writestr(i, data)
     for f in files:
       if self.debug: # pragma: no cover
         print "... adding:", f
-      zf.write(f, os.path.basename(f))
+      base = os.path.basename(f)
+      if base in arcnames:
+        continue
+      arcnames.append(base)
+      zf.write(f, base)
+
+    # Clone from existing zip archive.
+    if clone and os.path.exists(clone):
+      zc = zipfile.ZipFile(clone)
+      for f in zc.namelist():
+        base = os.path.basename(f)
+        if os.path.splitext(base)[-1] != '.txt':
+          continue
+        if base in arcnames:
+          continue
+        arcnames.append(base)
+        if self.debug: # pragma: no cover
+          print "... copying:", f
+        with zc.open(f) as i:
+          data = i.read()
+        zf.writestr(base, data)
     zf.close()
 
   def preload(self):

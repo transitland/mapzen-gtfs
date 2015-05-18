@@ -155,17 +155,6 @@ class TestFeed(unittest.TestCase):
         clone=util.example_feed()
       )
     os.unlink(outfile)
-    
-  def test_make_zip_multiplefiles(self):
-    f = feed.Feed()
-    outfile = test_outfile()
-    with self.assertRaises(ValueError):
-      f.make_zip(
-        outfile,
-        files=['stops.txt'],
-        path=os.path.dirname(util.example_feed()),
-        clone=util.example_feed()
-      )
 
   def test_cache(self):
     f = feed.Feed(util.example_feed())
