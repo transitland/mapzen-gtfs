@@ -40,11 +40,13 @@ class Feed(object):
 
   def __init__(self, filename=None, path=None, debug=False):
     """Filename required."""
-    self.cache = {}
-    self.by_id = {}
     self.filename = filename
     self.path = path
     self.debug = debug
+    self.cache = {}
+    self.by_id = {}
+    self._shapes = None
+    self._zones = None
 
   ##### Read / write #####
   
@@ -64,6 +66,8 @@ class Feed(object):
         f = zf.open(arcname)
       except KeyError:
         pass
+    elif self.filename and not os.path.exists(self.filename):
+      raise KeyError("File not found: %s"%self.filename)
     if not f:
       raise KeyError("File not found in path or zip file: %s"%arcname)
     return f
@@ -242,12 +246,15 @@ class Feed(object):
   def shapes(self):
     """Return the route shapes as a dictionary."""
     # Todo: Cache?
+    if self._shapes:
+      return self._shapes
     # Group together by shape_id
     self.log("Generating shapes...")
     ret = collections.defaultdict(entities.ShapeLine)
     for point in self.read('shapes'):
       ret[point['shape_id']].add_child(point)
-    return ret
+    self._shapes = ret
+    return self._shapes
     
   ##### Other methods #####
   
