@@ -62,6 +62,14 @@ class Stop(entity.Entity):
         serves |= trip._parents
     return serves
 
+  def location_type(self):
+    value = self.get('location_type')
+    if value:
+      value = int(value)
+    else:
+      value = 0
+    return value
+    
   ##### Validation #####
   def validate(self, validator=None):
     validator = super(Stop, self).validate(validator)
