@@ -60,13 +60,11 @@ class TestEntity(unittest.TestCase):
 
   def test_name(self):
     entity = entities.Entity(**self.expect)
-    with self.assertRaises(NotImplementedError):
-      entity.name()
+    assert entity.name() is None
 
   def test_id(self):
     entity = entities.Entity(**self.expect)
-    with self.assertRaises(NotImplementedError):
-      entity.id()
+    assert entity.id() is None
 
   def test_point(self):
     entity = entities.Entity(**self.expect)
