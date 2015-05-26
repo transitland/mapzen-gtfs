@@ -48,6 +48,9 @@ class Feed(object):
     self._shapes = None
     self._zones = None
 
+  def __repr__(self):
+    return '<%s %s>'%(self.__class__.__name__, self.filename)
+
   ##### Read / write #####
   
   def log(self, msg):
@@ -307,11 +310,17 @@ class Feed(object):
         i.validate_feed(validator=validator)  
     return validator
 
-  def validate_feedvalidator(self, validator=None, report='report.html'):
+  def validate_feedvalidator(
+    self, 
+    validator=None, 
+    feedvalidator=None, 
+    report='report.html'
+    ):
+    feedvalidator = feedvalidator or 'feedvalidator.py'
     validator = validation.make_validator(validator)
     p = subprocess.Popen(
       [
-        'feedvalidator.py',
+        feedvalidator,
         '--memory_db',
         '--noprompt',
         '--output',
