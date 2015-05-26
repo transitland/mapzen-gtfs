@@ -30,6 +30,9 @@ class Entity(object):
     self._children = set()  
     self._parents = set()
   
+  def __repr__(self):
+    return '<%s %s>'%(self.__class__.__name__, self.id())
+  
   # GTFS row data.
   def __len__(self):
     return len(self.data)
@@ -77,11 +80,11 @@ class Entity(object):
   # Name methods.
   def name(self):
     """A reasonable name for the entity."""
-    raise NotImplementedError
+    return None
   
   def id(self):
     """An internal GTFS identifier, e.g. route_id."""
-    raise NotImplementedError
+    return None
   
   def feedid(self, feedid):
     """A canonical Onestop-style ID for this entity."""
