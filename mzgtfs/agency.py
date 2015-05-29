@@ -24,7 +24,7 @@ class Agency(entity.Entity):
 
   def id(self):
     # agency_id is optional.
-    return self.get('agency_id') or self.get('agency_name')
+    return self.get('agency_id')
 
   def point(self):
     bbox = self.bbox()
