@@ -82,6 +82,8 @@ class Route(entity.Entity):
       '5': 'cablecar',
       '6': 'gondola',
       '7': 'funicular',
+      '700': 'Bus Service',
+      '800': 'Trolleybus Service',
       None: None,
       '': None
     }[self.get('route_type')]
