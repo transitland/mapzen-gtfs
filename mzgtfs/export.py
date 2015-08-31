@@ -13,7 +13,7 @@ if __name__ == "__main__":
 
   args = parser.parse_args()
   g = feed.Feed(args.filename)
-  f.preload()
+  g.preload()
   print "===== GTFS: %s ====="%g.filename
   for agency in g.agencies():
     print "Agency:", agency['agency_name']
