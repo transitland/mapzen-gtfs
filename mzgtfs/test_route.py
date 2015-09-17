@@ -33,6 +33,15 @@ class TestRoute(unittest.TestCase):
     entity = entities.Route(**self.expect)
     assert entity.id() == self.expect['route_id']
 
+  def test_vehicle(self):
+    entity = entities.Route(**self.expect)
+    assert entity.vehicle() == 'Bus'
+
+  def test_vehicle_extended(self):
+    entity = entities.Route(**self.expect)
+    entity.set('route_type', '101')
+    assert entity.vehicle() == 'High Speed Rail Service'
+
   # Requires preload
   def test_bbox(self):
     agency = util.preload_agency()
@@ -81,5 +90,3 @@ class TestRoute(unittest.TestCase):
     agency = util.preload_agency()
     route = agency.route(self.expect['route_id'])
     assert len(route.stops()) == 2
-
-    
