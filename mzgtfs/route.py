@@ -13,7 +13,7 @@ class Route(entity.Entity):
     'route_id',
     'route_short_name',
     'route_long_name',
-    'route_type'    
+    'route_type'
   ]
   OPTIONAL = [
     'agency_id',
@@ -42,7 +42,7 @@ class Route(entity.Entity):
     }
 
   def geometry(self):
-    # Return a line for most popular shape_id or stop pattern 
+    # Return a line for most popular shape_id or stop pattern
     #   in each direction_id.
     d0 = collections.defaultdict(int)
     d1 = collections.defaultdict(int)
@@ -50,7 +50,7 @@ class Route(entity.Entity):
     try:
       shapes = self._feed.shapes()
     except KeyError:
-      shapes = {}      
+      shapes = {}
     for trip in self.trips():
       if trip.get('shape_id') and trip.get('shape_id') in shapes:
         seq = tuple(shapes[trip['shape_id']].points())
@@ -71,7 +71,7 @@ class Route(entity.Entity):
       'type':'MultiLineString',
       'coordinates': [route0, route1]
     }
-  
+
   def vehicle(self):
     return {
       '0': 'tram',
@@ -87,8 +87,8 @@ class Route(entity.Entity):
       None: None,
       '': None
     }[self.get('route_type')]
-  
-  # Graph.  
+
+  # Graph.
   def trips(self):
     """Return trips for this route."""
     return set(self.children()) # copy
@@ -105,15 +105,15 @@ class Route(entity.Entity):
   def validate(self, validator=None):
     validator = super(Route, self).validate(validator)
     # Required
-    with validator(self): 
+    with validator(self):
       assert self.get('route_id'), "Required: route_id"
     with validator(self):
       assert self.get('route_type'), "Required: route_type"
       assert self.vehicle(), "Invalid route_type"
-    with validator(self): 
+    with validator(self):
       assert self.get('route_short_name') or self.get('route_long_name'), \
         "Must provide either route_short_name or route_long_name"
-    # TODO: Warnings: 
+    # TODO: Warnings:
     #   short name too long
     #   short name == long name
     #   route_desc != route name
@@ -121,16 +121,16 @@ class Route(entity.Entity):
     with validator(self):
       if self.get('agency_id'): pass
     with validator(self):
-      if self.get('route_desc'): pass      
-    with validator(self): 
+      if self.get('route_desc'): pass
+    with validator(self):
       if self.get('route_url'):
         assert validation.valid_url(self.get('route_url')), \
           "Invalid route_url"
-    with validator(self): 
+    with validator(self):
       if self.get('route_color'):
         assert validation.valid_color(self.get('route_color')), \
           "Invalid route_color"
-    with validator(self): 
+    with validator(self):
       if self.get('route_text_color'):
         assert validation.valid_color(self.get('route_text_color')), \
           "Invalid route_text_color"
