@@ -5,6 +5,149 @@ import entity
 import geom
 import validation
 
+VEHICLE_TYPES = {
+  None: None,
+  "": None,
+  # Basic GTFS
+  "0": "Tram",
+  "1": "Metro",
+  "2": "Rail",
+  "3": "Bus",
+  "4": "Ferry",
+  "5": "Cablecar",
+  "6": "Gondola",
+  "7": "Funicular",
+  # Extended vehicle types
+  # https://support.google.com/transitpartners/answer/3520902?hl=en
+  "100": "Railway Service",
+  "101": "High Speed Rail Service",
+  "102": "Long Distance Trains",
+  "103": "Inter Regional Rail Service",
+  "104": "Car Transport Rail Service",
+  "105": "Sleeper Rail Service",
+  "106": "Regional Rail Service",
+  "107": "Tourist Railway Service",
+  "108": "Rail Shuttle (Within Complex)",
+  "109": "Suburban Railway",
+  "110": "Replacement Rail Service",
+  "111": "Special Rail Service",
+  "112": "Lorry Transport Rail Service",
+  "113": "All Rail Services",
+  "114": "Cross-Country Rail Service",
+  "115": "Vehicle Transport Rail Service",
+  "116": "Rack and Pinion Railway",
+  "117": "Additional Rail Service",
+  "200": "Coach Service",
+  "201": "International Coach Service",
+  "202": "National Coach Service",
+  "203": "Shuttle Coach Service",
+  "204": "Regional Coach Service",
+  "205": "Special Coach Service",
+  "206": "Sightseeing Coach Service",
+  "207": "Tourist Coach Service",
+  "208": "Commuter Coach Service",
+  "209": "All Coach Services",
+  "300": "Suburban Railway Service",
+  "400": "Urban Railway Service",
+  "401": "Metro Service",
+  "402": "Underground Service",
+  "403": "Urban Railway Service",
+  "404": "All Urban Railway Services",
+  "405": "Monorail",
+  "500": "Metro Service",
+  "600": "Underground Service",
+  "700": "Bus Service",
+  "701": "Regional Bus Service",
+  "702": "Express Bus Service",
+  "703": "Stopping Bus Service",
+  "704": "Local Bus Service",
+  "705": "Night Bus Service",
+  "706": "Post Bus Service",
+  "707": "Special Needs Bus",
+  "708": "Mobility Bus Service",
+  "709": "Mobility Bus for Registered Disabled",
+  "710": "Sightseeing Bus",
+  "711": "Shuttle Bus",
+  "712": "School Bus",
+  "713": "School and Public Service Bus",
+  "714": "Rail Replacement Bus Service",
+  "715": "Demand and Response Bus Service",
+  "716": "All Bus Services",
+  "800": "Trolleybus Service",
+  "900": "Tram Service",
+  "901": "City Tram Service",
+  "902": "Local Tram Service",
+  "903": "Regional Tram Service",
+  "904": "Sightseeing Tram Service",
+  "905": "Shuttle Tram Service",
+  "906": "All Tram Services",
+  "1000": "Water Transport Service",
+  "1001": "International Car Ferry Service",
+  "1002": "National Car Ferry Service",
+  "1003": "Regional Car Ferry Service",
+  "1004": "Local Car Ferry Service",
+  "1005": "International Passenger Ferry Service",
+  "1006": "National Passenger Ferry Service",
+  "1007": "Regional Passenger Ferry Service",
+  "1008": "Local Passenger Ferry Service",
+  "1009": "Post Boat Service",
+  "1010": "Train Ferry Service",
+  "1011": "Road-Link Ferry Service",
+  "1012": "Airport-Link Ferry Service",
+  "1013": "Car High-Speed Ferry Service",
+  "1014": "Passenger High-Speed Ferry Service",
+  "1015": "Sightseeing Boat Service",
+  "1016": "School Boat",
+  "1017": "Cable-Drawn Boat Service",
+  "1018": "River Bus Service",
+  "1019": "Scheduled Ferry Service",
+  "1020": "Shuttle Ferry Service",
+  "1021": "All Water Transport Services",
+  "1100": "Air Service",
+  "1101": "International Air Service",
+  "1102": "Domestic Air Service",
+  "1103": "Intercontinental Air Service",
+  "1104": "Domestic Scheduled Air Service",
+  "1105": "Shuttle Air Service",
+  "1106": "Intercontinental Charter Air Service",
+  "1107": "International Charter Air Service",
+  "1108": "Round-Trip Charter Air Service",
+  "1109": "Sightseeing Air Service",
+  "1110": "Helicopter Air Service",
+  "1111": "Domestic Charter Air Service",
+  "1112": "Schengen-Area Air Service",
+  "1113": "Airship Service",
+  "1114": "All Air Services",
+  "1200": "Ferry Service",
+  "1300": "Telecabin Service",
+  "1301": "Telecabin Service",
+  "1302": "Cable Car Service",
+  "1303": "Elevator Service",
+  "1304": "Chair Lift Service",
+  "1305": "Drag Lift Service",
+  "1306": "Small Telecabin Service",
+  "1307": "All Telecabin Services",
+  "1400": "Funicular Service",
+  "1401": "Funicular Service",
+  "1402": "All Funicular Service",
+  "1500": "Taxi Service",
+  "1501": "Communal Taxi Service",
+  "1502": "Water Taxi Service",
+  "1503": "Rail Taxi Service",
+  "1504": "Bike Taxi Service",
+  "1505": "Licensed Taxi Service",
+  "1506": "Private Hire Service Vehicle",
+  "1507": "All Taxi Services",
+  "1600": "Self Drive",
+  "1601": "Hire Car",
+  "1602": "Hire Van",
+  "1603": "Hire Motorbike",
+  "1604": "Hire Cycle",
+  "1700": "Miscellaneous Service",
+  "1701": "Cable Car",
+  "1702": "Horse-drawn Carriage"
+}
+
 class Route(entity.Entity):
   """GTFS Route entity."""
   ENTITY_TYPE = 'r'
@@ -13,7 +156,7 @@ class Route(entity.Entity):
     'route_id',
     'route_short_name',
     'route_long_name',
-    'route_type'    
+    'route_type'
   ]
   OPTIONAL = [
     'agency_id',
@@ -22,7 +165,7 @@ class Route(entity.Entity):
     'route_color',
     'route_text_color'
   ]
-  
+
   def name(self):
     return self.get('route_short_name') or self.get('route_long_name')
 
@@ -42,7 +185,7 @@ class Route(entity.Entity):
     }
 
   def geometry(self):
-    # Return a line for most popular shape_id or stop pattern 
+    # Return a line for most popular shape_id or stop pattern
     #   in each direction_id.
     d0 = collections.defaultdict(int)
     d1 = collections.defaultdict(int)
@@ -50,7 +193,7 @@ class Route(entity.Entity):
     try:
       shapes = self._feed.shapes()
     except KeyError:
-      shapes = {}      
+      shapes = {}
     for trip in self.trips():
       if trip.get('shape_id') and trip.get('shape_id') in shapes:
         seq = tuple(shapes[trip['shape_id']].points())
@@ -71,24 +214,11 @@ class Route(entity.Entity):
       'type':'MultiLineString',
       'coordinates': [route0, route1]
     }
-  
+
   def vehicle(self):
-    return {
-      '0': 'tram',
-      '1': 'metro',
-      '2': 'rail',
-      '3': 'bus',
-      '4': 'ferry',
-      '5': 'cablecar',
-      '6': 'gondola',
-      '7': 'funicular',
-      '700': 'Bus Service',
-      '800': 'Trolleybus Service',
-      None: None,
-      '': None
-    }[self.get('route_type')]
-  
-  # Graph.  
+    return VEHICLE_TYPES[self.get('route_type')]
+
+  # Graph.
   def trips(self):
     """Return trips for this route."""
     return set(self.children()) # copy
@@ -105,15 +235,15 @@ class Route(entity.Entity):
   def validate(self, validator=None):
     validator = super(Route, self).validate(validator)
     # Required
-    with validator(self): 
+    with validator(self):
       assert self.get('route_id'), "Required: route_id"
     with validator(self):
       assert self.get('route_type'), "Required: route_type"
       assert self.vehicle(), "Invalid route_type"
-    with validator(self): 
+    with validator(self):
       assert self.get('route_short_name') or self.get('route_long_name'), \
         "Must provide either route_short_name or route_long_name"
-    # TODO: Warnings: 
+    # TODO: Warnings:
     #   short name too long
     #   short name == long name
     #   route_desc != route name
@@ -121,16 +251,16 @@ class Route(entity.Entity):
     with validator(self):
       if self.get('agency_id'): pass
     with validator(self):
-      if self.get('route_desc'): pass      
-    with validator(self): 
+      if self.get('route_desc'): pass
+    with validator(self):
       if self.get('route_url'):
         assert validation.valid_url(self.get('route_url')), \
           "Invalid route_url"
-    with validator(self): 
+    with validator(self):
       if self.get('route_color'):
         assert validation.valid_color(self.get('route_color')), \
           "Invalid route_color"
-    with validator(self): 
+    with validator(self):
       if self.get('route_text_color'):
         assert validation.valid_color(self.get('route_text_color')), \
           "Invalid route_text_color"
