@@ -10,7 +10,6 @@ Benefits:
  * Reads directly from zip archives
  * Entity generators, read tables line-by-line
  * Entity graph structure
- * Reads directly from zip archives
  * Built-in basic validator
 
 ## Installation
