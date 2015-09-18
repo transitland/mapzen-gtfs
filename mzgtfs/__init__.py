@@ -4,4 +4,4 @@ This package is used internally to read and process GTFS files and to create One
 
 """
 
-__version__ = 'master'
+__version__ = '1.0.0'
