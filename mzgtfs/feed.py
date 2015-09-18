@@ -17,7 +17,7 @@ except ImportError:
 import util
 import entities
 import validation
-  
+
 class Feed(object):
   """Read a GTFS feed."""
 
@@ -52,7 +52,7 @@ class Feed(object):
     return '<%s %s>'%(self.__class__.__name__, self.filename)
 
   ##### Read / write #####
-  
+
   def log(self, msg):
     if self.debug:
       print msg
@@ -89,7 +89,7 @@ class Feed(object):
     header = data.next()
     headerlen = len(header)
     ent = collections.namedtuple(
-      'EntityNamedTuple', 
+      'EntityNamedTuple',
       map(str, header)
     )
     for row in data:
@@ -102,14 +102,14 @@ class Feed(object):
         row += ['']*(headerlen-len(row))
       yield cls.from_row(ent._make(row), self)
     f.close()
-    
+
   def read(self, table):
     """..."""
     # Table exists
     if table in self.by_id:
       return self.by_id[table].values()
     if table in self.cache:
-      return self.cache[table]    
+      return self.cache[table]
     # Read table
     cls = self.FACTORIES[table]
     key = cls.KEY
@@ -129,11 +129,11 @@ class Feed(object):
 
   def write(self, filename, entities, sortkey=None, columns=None):
     """Write entities out to filename in csv format.
-    
+
     Note: this doesn't write directly into a Zip archive, because this behavior
     is difficult to achieve with Zip archives. Use make_zip() to create a new
     GTFS Zip archive.
-    """    
+    """
     if os.path.exists(filename):
       raise IOError('File exists: %s'%filename)
     # Make sure we have all the entities loaded.
@@ -143,7 +143,7 @@ class Feed(object):
       columns = set()
       for entity in entities:
         columns |= set(entity.keys())
-      columns = sorted(columns)      
+      columns = sorted(columns)
     # Write the csv file
     with open(filename, 'wb') as f:
       writer = unicodecsv.writer(f) # , encoding='utf-8-sig'
@@ -153,18 +153,18 @@ class Feed(object):
 
   def make_zip(self, filename, files=None, path=None, clone=None):
     """Create a Zip archive.
-    
+
     Provide any of the following:
       files - A list of files
       path - A directory of .txt files
       clone - Copy any files from a zip archive not specified above
 
     Duplicate files will be ignored. The 'files' argument will be used first,
-    then files found in the specified 'path', then in the 
+    then files found in the specified 'path', then in the
     specified 'clone' archive.
     """
     if filename and os.path.exists(filename):
-      raise IOError('File exists: %s'%filename)     
+      raise IOError('File exists: %s'%filename)
     files = files or []
     arcnames = []
     if path and os.path.isdir(path):
@@ -218,21 +218,21 @@ class Feed(object):
       route.add_parent(self.agency(route.get('agency_id') or default_agency_id))
     for trip in self.trips():
       trip.add_parent(self.route(trip.get('route_id')))
-    # Load stop_times  
+    # Load stop_times
     for stoptime in self.read('stop_times'):
       stoptime.add_parent(self.trip(stoptime.get('trip_id')))
       stoptime.add_child(self.stop(stoptime.get('stop_id')))
 
   ##### Keyed entities #####
-  
+
   def _entities(self, table):
     return self.read(table)
-  
+
   def _entity(self, table, key):
     if table not in self.by_id:
       self.read(table)
     return self.by_id[table][key]
-    
+
   def agencies(self): return self._entities('agency')
   def agency(self, key): return self._entity('agency', key)
   def routes(self): return self._entities('routes')
@@ -243,8 +243,18 @@ class Feed(object):
   def trip(self, key): return self._entity('trips', key)
   def fares(self): return self._entities('fare_attributes')
   def fare(self, key): return self._entity('fare_attributes', key)
-  def serviceperiods(self): return self._entities('calendar')
-  def serviceperiod(self, key): return self._entity('calendar', key)
+  def fare_rules(self): return self._entities('fare_rules')
+  def service_periods(self): return self._entities('calendar')
+  def service_period(self, key): return self._entity('calendar', key)
+  def service_exceptions(self): return self._entities('calendar_dates')
+  def stop_times(self): return self._entities('stop_times')
+  def transfers(self): return self._entities('transfers')
+  def frequencies(self): return self._entities('frequencies')
+  def feed_infos(self): return self._entities('feed_info')
+
+  # backwards compat
+  def serviceperiods(self): return self.service_periods()
+  def serviceperiod(self, key): return self.service_period(key)
 
   def shapes(self):
     """Return the route shapes as a dictionary."""
@@ -258,27 +268,32 @@ class Feed(object):
       ret[point['shape_id']].add_child(point)
     self._shapes = ret
     return self._shapes
-    
+
+  def shape_line(self, key):
+    if self._shapes:
+      return self._shapes[key]
+    return self.shapes()[key]
+
   ##### Other methods #####
-  
+
   def dates(self):
     data = self.read('calendar')
     return [
       min(i.start() for i in data),
       max(i.end() for i in data)
     ]
-    
+
   ##### Validation #####
-  
+
   def validate(self, validator=None):
     validator = validation.make_validator(validator)
     self.log('Loading...')
     self.preload()
     # required
     required = [
-      'agency', 
-      'stops', 
-      'routes', 
+      'agency',
+      'stops',
+      'routes',
       'trips',
       'stop_times',
       'calendar'
@@ -288,7 +303,7 @@ class Feed(object):
       data = self.read(f)
       for i in data:
         i.validate(validator=validator)
-        i.validate_feed(validator=validator)  
+        i.validate_feed(validator=validator)
     # optional
     optional = [
       'calendar_dates',
@@ -307,13 +322,13 @@ class Feed(object):
         data = []
       for i in data:
         i.validate(validator=validator)
-        i.validate_feed(validator=validator)  
+        i.validate_feed(validator=validator)
     return validator
 
   def validate_feedvalidator(
-    self, 
-    validator=None, 
-    feedvalidator=None, 
+    self,
+    validator=None,
+    feedvalidator=None,
     report='report.html'
     ):
     feedvalidator = feedvalidator or 'feedvalidator.py'
@@ -327,7 +342,7 @@ class Feed(object):
         report,
         self.filename
       ],
-      stdout=subprocess.PIPE, 
+      stdout=subprocess.PIPE,
       stderr=subprocess.PIPE
     )
     stdout, stderr = p.communicate()
