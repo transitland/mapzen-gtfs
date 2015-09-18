@@ -17,10 +17,10 @@ class Frequency(entity.Entity):
   OPTIONAL = [
     'exact_times'
   ]
-  
+
   def start(self):
     return widetime.WideTime.from_string(self.get('start_time'))
-    
+
   def end(self):
     return widetime.WideTime.from_string(self.get('end_time'))
 
@@ -51,9 +51,9 @@ class Frequency(entity.Entity):
         assert validation.valid_bool(self.get('exact_times'), empty=True), \
           "Invalid exact_times"
     return validator
-    
+
   def validate_feed(self, validator=None):
-    validator = super(FareRule, self).validate_feed(validator)
+    validator = super(Frequency, self).validate_feed(validator)
     with validator(self):
       assert self._feed.trip(self.get('trip_id')), "Unknown trip_id"
     return validator
