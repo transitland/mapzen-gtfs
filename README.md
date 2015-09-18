@@ -45,7 +45,7 @@ The `mzgtfs.feed.Feed` class is the main entry point for reading and writing sch
 
 The GTFS CSV files are mapped to the following Entity classes:
 
-| Feed method                   | GTFS Table          | Entity Class
+| Feed method                   | GTFS File           | Entity Class
 |-------------------------------|---------------------|-----------------|
 | agencies(), agency(agency_id) | agency.txt          | Agency
 | routes(), route(route_id)     | routes.txt          | Route
