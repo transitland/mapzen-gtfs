@@ -19,16 +19,16 @@ class Trip(entity.Entity):
     'shape_id',
     'wheelchair_accessible',
     'bikes_allowed',
-  ]  
+  ]
   def id(self):
     return self.get('trip_id')
-  
+
   def start(self):
     return self.stop_sequence()[0].arrive()
-  
+
   def end(self):
     return self.stop_sequence()[-1].arrive()
-  
+
   # Graph
   def stop_times(self):
     return set(self.children()) # copy
@@ -37,17 +37,17 @@ class Trip(entity.Entity):
   def stop_sequence(self):
     """Return the sorted StopTimes for this trip."""
     return sorted(
-      self.stop_times(), 
+      self.stop_times(),
       key=lambda x:int(x.get('stop_sequence'))
     )
-    
+
   ##### Validation #####
   def validate(self, validator=None):
     validator = super(Trip, self).validate(validator)
     # Required
-    with validator(self): 
+    with validator(self):
       assert self.get('route_id'), "Required: route_id"
-    with validator(self): 
+    with validator(self):
       assert self.get('service_id'), "Required: service_id"
     with validator(self):
       assert self.get('trip_id'), "Required: trip_id"
@@ -84,7 +84,7 @@ class Trip(entity.Entity):
     with validator(self):
       assert self._feed.route(self.get('route_id')), "Unknown route_id"
     with validator(self):
-      assert self._feed.serviceperiod(self.get('service_id')), "Unknown service_id"
+      assert self._feed.service_period(self.get('service_id')), "Unknown service_id"
     with validator(self):
       cur = 0
       for i in self.stop_sequence():
@@ -94,4 +94,3 @@ class Trip(entity.Entity):
         cur = j
     # TODO: validate shape
     return validator
-    
