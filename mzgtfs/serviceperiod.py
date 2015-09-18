@@ -57,14 +57,14 @@ class ServicePeriod(entity.Entity):
     # TODO: Warnings
     #   - no days of the week
     return validator
-  
+
 class ServiceDate(entity.Entity):
   REQUIRED = [
     'service_id',
     'date',
     'exception_type'
   ]
-  
+
   def validate(self, validator=None):
     validator = super(ServiceDate, self).validate(validator)
     with validator(self):
@@ -75,10 +75,10 @@ class ServiceDate(entity.Entity):
       assert validation.valid_int(self.get('exception_type'), vmin=1, vmax=2), \
         "Invalid exception_type"
     return validator
-    
+
   def validate_feed(self, validator=None):
     validator = super(ServiceDate, self).validate_feed(validator)
     with validator(self):
-      assert self._feed.serviceperiod(self.get('service_id')), \
-        "Unknown service_id"    
+      assert self._feed.service_period(self.get('service_id')), \
+        "Unknown service_id"
     return validator
