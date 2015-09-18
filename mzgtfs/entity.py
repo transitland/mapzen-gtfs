@@ -4,42 +4,42 @@ import validation
 
 class Entity(object):
   """A GTFS Entity.
-  
+
   Parent-child relationships:
-  
-    Agency -> 
-      Route -> 
-        Trip -> 
-          StopTime -> 
+
+    Agency ->
+      Route ->
+        Trip ->
+          StopTime ->
             Stop
-  
+
   """
   ENTITY_TYPE = None
   KEY = None
   REQUIRED = []
   OPTIONAL = []
-  
+
   def __init__(self, **data):
     """Row data from DictReader, and reference to feed."""
-    # The row data. 
+    # The row data.
     # This is a collections.namedtuple, and is read-only.
     self.data = data
     # Reference to GTFS Reader.
     self._feed = None
     # Relationships (e.g. trips, stop_times, ...)
-    self._children = set()  
+    self._children = set()
     self._parents = set()
-  
+
   def __repr__(self):
     return '<%s %s>'%(self.__class__.__name__, self.id())
-  
+
   # GTFS row data.
   def __len__(self):
     return len(self.data)
-  
+
   def __contains__(self, key):
     return key in self.data
-  
+
   def __getitem__(self, key):
     """Proxy to row data."""
     # Work with either a dict or a namedtuple.
@@ -57,56 +57,48 @@ class Entity(object):
       return self[key]
     except KeyError:
       return default
-      
+
   def set(self, key, value):
     # Convert from namedtuple to dict if setting value.
     if hasattr(self.data, '_fields'):
       self.data = self.data._asdict()
     self.data[key] = value
-  
+
   def set_feed(self, feed):
     self._feed = feed
-  
+
   def keys(self):
     if hasattr(self.data, '_fields'):
       return self.data._fields
     return self.data.keys()
-    
+
   def items(self):
     if hasattr(self.data, '_fields'):
       return self.data._asdict().items()
     return self.data.items()
-  
+
   # Name methods.
   def name(self):
     """A reasonable name for the entity."""
     return None
-  
+
   def id(self):
     """An internal GTFS identifier, e.g. route_id."""
     return None
-  
-  def feedid(self, feedid):
-    """A canonical Onestop-style ID for this entity."""
-    return 'gtfs://%s/%s/%s'%(
-      feedid,
-      self.ENTITY_TYPE,
-      self.id()
-    )
 
   # Entity geometry.
   def point(self):
     """Return a point for this entity."""
-    raise NotImplementedError  
-    
+    raise NotImplementedError
+
   def bbox(self):
     """Return a bounding box for this entity."""
     raise NotImplementedError
-  
+
   def geometry(self):
     """Return a GeoJSON-type geometry for this entity."""
     raise NotImplementedError
-    
+
   # Load / Dump.
   @classmethod
   def from_row(cls, data, feed=None):
@@ -114,11 +106,11 @@ class Entity(object):
     entity.data = data
     entity.set_feed(feed)
     return entity
-    
+
   @classmethod
   def from_json(cls, data):
     raise NotImplementedError
-  
+
   def json(self):
     raise NotImplementedError
 
@@ -131,35 +123,33 @@ class Entity(object):
       child._parents = set()
     parent._children.add(child)
     child._parents.add(parent)
-    
+
   # ... children
   def add_child(self, child):
     """Add a child relationship."""
     self.pclink(self, child)
-    
+
   def children(self):
     """Read and cache children."""
     return self._children
-    
+
   # ... parents
   def add_parent(self, parent):
     """Add a parent relationship."""
     self.pclink(parent, self)
-    
+
   def parents(self):
     """Read and cache parents."""
     return self._parents
-    
+
   def _read_parents(self):
     """Read the parents from the GTFS feed."""
     return set()
-    
+
   ##### Validation #####
-  
+
   def validate(self, validator=None):
     return validation.make_validator(validator)
-    
+
   def validate_feed(self, validator=None):
     return validation.make_validator(validator)
-    
-    
