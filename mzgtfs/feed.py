@@ -1,5 +1,5 @@
 """GTFS Feed Reader."""
-import csv
+
 import zipfile
 import collections
 import json
@@ -285,7 +285,7 @@ class Feed(object):
 
   ##### Validation #####
 
-  def validate(self, validator=None):
+  def validate(self, validator=None, skip_relations=False):
     validator = validation.make_validator(validator)
     self.log('Loading...')
     self.preload()
@@ -303,7 +303,8 @@ class Feed(object):
       data = self.read(f)
       for i in data:
         i.validate(validator=validator)
-        i.validate_feed(validator=validator)
+        if skip_relations is False:
+          i.validate_feed(validator=validator)
     # optional
     optional = [
       'calendar_dates',
@@ -322,7 +323,8 @@ class Feed(object):
         data = []
       for i in data:
         i.validate(validator=validator)
-        i.validate_feed(validator=validator)
+        if skip_relations is False:
+          i.validate_feed(validator=validator)
     return validator
 
   def validate_feedvalidator(
