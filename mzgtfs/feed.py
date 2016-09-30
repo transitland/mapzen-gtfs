@@ -286,6 +286,12 @@ class Feed(object):
   ##### Validation #####
 
   def validate(self, validator=None, skip_relations=False):
+    """Validate a GTFS
+
+    :param validator: a ValidationReport
+    :param (bool) skip_relations: skip validation of relations between entities (e.g. stop_times to stops)
+    :return:
+    """
     validator = validation.make_validator(validator)
     self.log('Loading...')
     self.preload()
