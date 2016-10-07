@@ -156,6 +156,27 @@ class TestFeed(unittest.TestCase):
       )
     os.unlink(outfile)
 
+  def test_make_zip_compression(self):
+    f = feed.Feed()
+    outfile = test_outfile()
+    f.make_zip(
+      outfile,
+      path=os.path.dirname(util.example_feed()),
+      clone=util.example_feed()
+      ,compress=False
+    )
+    outfile2 = test_outfile()
+    f.make_zip(
+      outfile2,
+      path=os.path.dirname(util.example_feed()),
+      clone=util.example_feed()
+    )
+    assert os.stat(outfile).st_size > os.stat(outfile2).st_size
+
+    os.unlink(outfile)
+    os.unlink(outfile2)
+
+
   def test_cache(self):
     f = feed.Feed(util.example_feed())
     # Read a first time
