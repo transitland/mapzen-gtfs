@@ -166,6 +166,14 @@ Writing out GTFS CSV files and creating new zip archives is also supported.
 >>> gtfs_feed.make_zip('new.zip', files=['stops.txt'], clone='original.zip')
 ```
 
+## Running tests
+
+The library's test suite uses Python unittest. To run the test suite:
+
+```
+python -m unittest discover
+```
+
 ## Contributing
 
 Please [open a Github issue](https://github.com/transitland/mapzen-gtfs/issues/new) with as much of the following information as you're able to specify, or [contact us](#contact) for assistance.
