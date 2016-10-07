@@ -151,7 +151,7 @@ class Feed(object):
       for entity in entities:
         writer.writerow([entity.get(column) for column in columns])
 
-  def make_zip(self, filename, files=None, path=None, clone=None):
+  def make_zip(self, filename, files=None, path=None, clone=None, compress=True):
     """Create a Zip archive.
 
     Provide any of the following:
@@ -169,9 +169,14 @@ class Feed(object):
     arcnames = []
     if path and os.path.isdir(path):
       files += glob.glob(os.path.join(path, '*.txt'))
+    if compress:
+      compress_level = zipfile.ZIP_DEFLATED
+    else:
+      compress_level = zipfile.ZIP_STORED
+
     # Write files.
     self.log("Creating zip archive: %s"%filename)
-    zf = zipfile.ZipFile(filename, 'a')
+    zf = zipfile.ZipFile(filename, 'a', compression=compress_level)
     for f in files:
       base = os.path.basename(f)
       if base in arcnames:
