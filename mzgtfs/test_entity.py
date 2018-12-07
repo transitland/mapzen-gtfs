@@ -5,9 +5,9 @@ import json
 import collections
 import copy
 
-import feed
-import entities
-import util
+from . import feed
+from . import entities
+from . import util
 
 class TestEntity(unittest.TestCase):
   """Test Entity methods, and unimplemented abstract methods."""
@@ -21,7 +21,7 @@ class TestEntity(unittest.TestCase):
   
   def test_get(self):
     agency = entities.Entity(**self.expect)
-    for key in self.expect.keys():
+    for key in list(self.expect.keys()):
       assert agency.get(key) == self.expect.get(key)
       assert agency[key] == self.expect[key]
 
@@ -35,14 +35,14 @@ class TestEntity(unittest.TestCase):
     assert agency.get('asdf','test') == 'test'
     
   def test_get_namedtuple(self):
-    nt = collections.namedtuple('test', self.expect.keys())
+    nt = collections.namedtuple('test', list(self.expect.keys()))
     agency = entities.Entity.from_row(nt(**self.expect))
-    for key in self.expect.keys():
+    for key in list(self.expect.keys()):
       assert agency.get(key) == self.expect.get(key)
       assert agency[key] == self.expect[key]
 
   def test_get_namedtuple_keyerror(self):
-    nt = collections.namedtuple('test', self.expect.keys())
+    nt = collections.namedtuple('test', list(self.expect.keys()))
     agency = entities.Entity.from_row(nt(**self.expect))
     with self.assertRaises(KeyError):
       agency['asdf']
@@ -53,7 +53,7 @@ class TestEntity(unittest.TestCase):
     assert agency['test'] == 'ok'
   
   def test_setitem_ntconvert(self):
-    nt = collections.namedtuple('test', self.expect.keys())
+    nt = collections.namedtuple('test', list(self.expect.keys()))
     agency = entities.Entity.from_row(nt(**self.expect))
     agency.set('test', 'ok')
     assert agency['test'] == 'ok'    

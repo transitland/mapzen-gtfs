@@ -1,11 +1,11 @@
 """GTFS Transfers."""
 import datetime
 
-import entity
-import geom
-import util
-import widetime
-import validation
+from . import entity
+from . import geom
+from . import util
+from . import widetime
+from . import validation
 
 class Transfer(entity.Entity):
   REQUIRED = [

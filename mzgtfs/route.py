@@ -1,9 +1,9 @@
 """GTFS Route entity."""
 import collections
 
-import entity
-import geom
-import validation
+from . import entity
+from . import geom
+from . import validation
 
 VEHICLE_TYPES = {
   None: None,
@@ -206,10 +206,10 @@ class Route(entity.Entity):
     # Sort to find the most popular shape.
     route0 = []
     if d0:
-      route0 = sorted(d0.items(), key=lambda x:x[1])[-1][0]
+      route0 = sorted(list(d0.items()), key=lambda x:x[1])[-1][0]
     route1 = []
     if d1:
-      route1 = sorted(d1.items(), key=lambda x:x[1])[-1][0]
+      route1 = sorted(list(d1.items()), key=lambda x:x[1])[-1][0]
     return {
       'type':'MultiLineString',
       'coordinates': [route0, route1]

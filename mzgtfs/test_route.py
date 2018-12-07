@@ -2,9 +2,9 @@ import unittest
 import json
 import copy
 
-import feed
-import entities
-import util
+from . import feed
+from . import entities
+from . import util
 
 class TestRoute(unittest.TestCase):
   expect = {

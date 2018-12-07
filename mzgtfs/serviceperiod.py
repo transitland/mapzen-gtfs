@@ -1,10 +1,10 @@
 """GTFS ServicePeriod entity."""
 import datetime
 
-import entity
-import geom
-import util
-import validation
+from . import entity
+from . import geom
+from . import util
+from . import validation
 
 class ServicePeriod(entity.Entity):
   KEY = 'service_id'

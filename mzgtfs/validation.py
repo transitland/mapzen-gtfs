@@ -4,8 +4,8 @@ import traceback
 import contextlib
 import datetime
 
-import iso639
-import widetime
+from . import iso639
+from . import widetime
 
 def make_validator(validator=None):
   return validator or ValidationManager()
@@ -17,7 +17,7 @@ def valid_color(color):
   for j in [color[i:i+2] for i in range(0,5,2)]:
     try:
       j = int(j,16)
-    except ValueError, e:
+    except ValueError as e:
       return False
   return True
   
@@ -36,7 +36,7 @@ def valid_int(value, vmin=None, vmax=None, empty=False):
     return True
   try:
     value = int(value)
-  except ValueError, e:
+  except ValueError as e:
     return False
   if vmin is not None and value < vmin:
     return False    
@@ -50,7 +50,7 @@ def valid_float(value, vmin=None, vmax=None, empty=False):
     return True
   try:
     value = float(value)
-  except ValueError, e:
+  except ValueError as e:
     return False
   if vmin is not None and value < vmin:
     return False    
@@ -66,7 +66,7 @@ def valid_bool(value, empty=False):
     return True
   try:
     value = int(value)
-  except ValueError, e:
+  except ValueError as e:
     return False
   return value in [0,1]
 
@@ -77,7 +77,7 @@ def valid_date(value, empty=False):
     return False
   try:
     datetime.datetime.strptime(value, '%Y%m%d')
-  except ValueError, e:
+  except ValueError as e:
     return False
   return True
 
@@ -144,9 +144,9 @@ class ValidationManager(object):
     return
       
   def report(self):
-    print "Validation report:"
+    print("Validation report:")
     for e in self.exceptions:
-      print "%s: %s"%(e.source, e.message)
+      print("%s: %s"%(e.source, e.message))
 
 class ValidationReport(ValidationManager):
   def __exit__(self, etype, value, traceback):

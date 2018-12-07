@@ -1,7 +1,7 @@
 """GTFS StopTime entity."""
-import entity
-import widetime
-import validation
+from . import entity
+from . import widetime
+from . import validation
 
 class StopTime(entity.Entity):
   """GTFS Stop Time Entity."""

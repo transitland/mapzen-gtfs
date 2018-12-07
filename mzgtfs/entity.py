@@ -1,6 +1,6 @@
 """Base entity."""
 
-import validation
+from . import validation
 
 class Entity(object):
   """A GTFS Entity.
@@ -70,12 +70,12 @@ class Entity(object):
   def keys(self):
     if hasattr(self.data, '_fields'):
       return self.data._fields
-    return self.data.keys()
+    return list(self.data.keys())
 
   def items(self):
     if hasattr(self.data, '_fields'):
-      return self.data._asdict().items()
-    return self.data.items()
+      return list(self.data._asdict().items())
+    return list(self.data.items())
 
   # Name methods.
   def name(self):

@@ -14,9 +14,9 @@ try:
 except ImportError:
   unicodecsv = None
 
-import util
-import entities
-import validation
+from . import util
+from . import entities
+from . import validation
 
 class Feed(object):
   """Read a GTFS feed."""
@@ -55,14 +55,14 @@ class Feed(object):
 
   def log(self, msg):
     if self.debug:
-      print msg
+      print(msg)
 
   def _open(self, table):
     arcname = '%s.txt'%table
     f = None
     zf = None
     if self.path and os.path.exists(os.path.join(self.path, arcname)):
-      f = open(os.path.join(self.path, arcname))
+      f = open(os.path.join(self.path, arcname), 'rb')
     elif self.filename and os.path.exists(self.filename):
       zf = zipfile.ZipFile(self.filename)
       try:
@@ -86,11 +86,11 @@ class Feed(object):
       data = unicodecsv.reader(f, encoding='utf-8-sig')
     else:
       data = csv.reader(f)
-    header = data.next()
+    header = next(data)
     headerlen = len(header)
     ent = collections.namedtuple(
       'EntityNamedTuple',
-      map(str, header)
+      list(map(str, header))
     )
     for row in data:
       if len(row) == 0:
@@ -107,7 +107,7 @@ class Feed(object):
     """..."""
     # Table exists
     if table in self.by_id:
-      return self.by_id[table].values()
+      return list(self.by_id[table].values())
     if table in self.cache:
       return self.cache[table]
     # Read table
@@ -119,7 +119,7 @@ class Feed(object):
       t = self.by_id[table]
       for item in self.iterread(table):
         t[item.get(key)] = item
-      return t.values()
+      return list(t.values())
     if table not in self.cache:
       self.cache[table] = []
     t = self.cache[table]
@@ -206,7 +206,7 @@ class Feed(object):
 
   def preload(self):
     # Load tables with primary key
-    for table,cls in self.FACTORIES.items():
+    for table,cls in list(self.FACTORIES.items()):
       if not cls.KEY:
         continue
       try:
@@ -330,7 +330,7 @@ class Feed(object):
       self.log("Validating optional file: %s"%f)
       try:
         data = self.read(f)
-      except KeyError, e:
+      except KeyError as e:
         data = []
       for i in data:
         i.validate(validator=validator)

@@ -4,7 +4,7 @@ import os
 import json
 import inspect
 
-import geom
+from . import geom
 
 class MockPoint(object):
   def __init__(self, x, y):

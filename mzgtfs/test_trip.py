@@ -1,8 +1,8 @@
 import unittest
 
-import feed
-import entities
-import util
+from . import feed
+from . import entities
+from . import util
     
 class TestTrip(unittest.TestCase):
   expect = {

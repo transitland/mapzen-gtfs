@@ -12,7 +12,7 @@ def filtany(entities, **kw):
   Multiple filters are 'OR'.
   """
   ret = set()
-  for k,v in kw.items():
+  for k,v in list(kw.items()):
     for entity in entities:
       if getattr(entity, k)() == v:
         ret.add(entity)
@@ -35,7 +35,7 @@ def example_feed(feed='sample-feed.zip'):
     )
   
 def preload_agency(**kw):
-  import feed  
+  from . import feed  
   agency_id = kw.pop('agency_id', 'DTA')
   f = feed.Feed(example_feed(**kw))
   f.preload()

@@ -2,9 +2,9 @@ import unittest
 import collections
 import json
 
-import feed
-import entities
-import util
+from . import feed
+from . import entities
+from . import util
 
 class TestAgency(unittest.TestCase):
   """Test Agency."""

@@ -1,6 +1,6 @@
 """GTFS Stop entity."""
-import entity
-import validation
+from . import entity
+from . import validation
 
 class Stop(entity.Entity):  
   """GTFS Stop entity."""
@@ -32,7 +32,7 @@ class Stop(entity.Entity):
   def point(self):
     try:
       return float(self.get('stop_lon')), float(self.get('stop_lat'))
-    except ValueError, e:
+    except ValueError as e:
       return None
 
   def bbox(self):

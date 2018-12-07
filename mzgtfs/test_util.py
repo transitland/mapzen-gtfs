@@ -4,9 +4,9 @@ import os
 import json
 import inspect
 
-import util
-import feed
-import entities
+from . import util
+from . import feed
+from . import entities
 
 class TestUtil(unittest.TestCase):
   testdata = [

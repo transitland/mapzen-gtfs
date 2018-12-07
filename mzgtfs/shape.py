@@ -1,6 +1,6 @@
 """GTFS ShapeRow entity; these can be collected into a ShapeLine"""
-import entity
-import validation
+from . import entity
+from . import validation
 
 class ShapeLine(entity.Entity):
   """A collection of ShapeRows."""
@@ -48,7 +48,7 @@ class ShapeRow(entity.Entity):
   def point(self):
     try:
       return float(self.get('shape_pt_lon')), float(self.get('shape_pt_lat'))
-    except ValueError, e:
+    except ValueError as e:
       return None
 
   def geometry(self):

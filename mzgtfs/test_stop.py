@@ -1,9 +1,9 @@
 import unittest
 import json
 
-import feed
-import entities
-import util
+from . import feed
+from . import entities
+from . import util
 
 class TestStop(unittest.TestCase):
   expect = {

@@ -1,6 +1,6 @@
 """GTFS Trip entity."""
-import entity
-import validation
+from . import entity
+from . import validation
 
 class Trip(entity.Entity):
   """GTFS Trip entity."""

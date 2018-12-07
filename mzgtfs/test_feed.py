@@ -7,9 +7,9 @@ import tempfile
 import csv
 import zipfile
 
-import util
-import feed
-import entities
+from . import util
+from . import feed
+from . import entities
 
 def test_outfile():
   # Create a temporary filename.
@@ -90,8 +90,8 @@ class TestFeed(unittest.TestCase):
     # Check the output...
     with open(outfile) as csvfile:
       reader = csv.reader(csvfile)
-      headers = reader.next()
-      assert len(self.agency_expect.keys()) == len(headers)
+      headers = next(reader)
+      assert len(list(self.agency_expect.keys())) == len(headers)
       for i in headers:
         assert i in self.agency_expect
       rows = []

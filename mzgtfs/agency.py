@@ -1,8 +1,8 @@
 """GTFS Agency entity."""
-import entity
-import geom
-import util
-import validation
+from . import entity
+from . import geom
+from . import util
+from . import validation
 
 class Agency(entity.Entity):
   """GTFS Agency entity."""

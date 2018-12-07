@@ -21,7 +21,7 @@ class WideTime(object):
   
   @classmethod
   def from_string(cls, value):
-    return cls(*map(int, value.split(':')))
+    return cls(*list(map(int, value.split(':'))))
 
   def __str__(self):
     return ':'.join('%02d'%i for i in list(self))

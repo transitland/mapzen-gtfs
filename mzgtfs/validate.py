@@ -2,8 +2,8 @@
 import argparse
 import json
 
-import feed
-import validation
+from . import feed
+from . import validation
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(description='Validate a GTFS feed.')
